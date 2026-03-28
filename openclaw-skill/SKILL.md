@@ -1,9 +1,10 @@
 ---
 name: personal-knowledge-base
 description: >
-  Personal Knowledge Base (Memora) — Semantic search, AI-powered Q&A, document management.
-  Supports: search, AI answers with sources, list, detail, file upload (PDF/DOCX/TXT/MD), create text documents.
-  个人知识库（Memora）— 语义搜索、AI 智能问答、文档管理。
+  Memora — A self-hosted RAG (Retrieval-Augmented Generation) personal knowledge base.
+  Built with FastAPI + Qdrant + DashScope/OpenAI Embedding + DeepSeek/OpenAI LLM.
+  Supports semantic vector search, AI-powered Q&A with source citations, hybrid retrieval (dense + BM42 sparse + rerank),
+  and full document management (upload PDF/DOCX/TXT/MD, create, list, detail).
   Use when: user asks about stored documents, wants to search/upload/create documents, or needs AI-organized answers from their knowledge base.
   NOT for: general chat, real-time news, tasks unrelated to the knowledge base.
 metadata:
@@ -13,94 +14,115 @@ metadata:
         - KB_API_BASE
 ---
 
-# Personal Knowledge Base (Memora)
+# Memora — Personal Knowledge Base (RAG)
 
-连接到个人知识库系统，支持语义搜索文档、获取 AI 整理答案、上传文件、创建文档。
+A self-hosted **Retrieval-Augmented Generation (RAG)** personal knowledge base that lets your AI assistant search, query, and manage your private documents.
+
+## Tech Stack
+
+- **Backend**: FastAPI (Python)
+- **Vector Database**: Qdrant (dense + sparse vectors)
+- **Embedding**: DashScope `text-embedding-v4` / OpenAI compatible
+- **LLM**: DeepSeek / OpenAI compatible
+- **Retrieval**: Hybrid search (dense vectors + BM42 sparse vectors + Qwen3 Rerank)
+- **Metadata Store**: MySQL
+- **Skill Client**: Zero-dependency Python (stdlib only — `urllib`, `json`)
+
+## Features
+
+- **Semantic Search** — Find documents by meaning using vector similarity, not just keywords
+- **AI-Powered Q&A** — Ask a question, get an LLM-generated answer grounded in your documents with source citations
+- **Hybrid Retrieval** — Dense embedding + BM42 sparse vectors + reranking for optimal recall and precision
+- **Document Upload** — Ingest PDF, DOCX, TXT, and Markdown files with automatic chunking and vectorization
+- **Document Creation** — Create text documents directly from the agent
+- **Document Management** — List, view details, and organize your knowledge base
 
 ## When to Run
 
-- 用户提问涉及已存储的文档或知识内容
-- 用户要求搜索知识库
-- 用户要求列出文档或查看文档详情
-- 用户想要上传文件或创建新文档到知识库
-- 用户想要对某个主题进行知识整理
+- User asks a question that may be answered by stored documents
+- User wants to search the knowledge base
+- User wants to list documents or view document details
+- User wants to upload a file or create a new document
+- User needs AI-organized answers on a topic from their personal knowledge
 
 ## Workflow
 
-### 上传文件到知识库
+### Upload a File
 
-1. 获取用户提供的文件路径和标题
-2. 执行脚本:
+1. Get the file path and title from the user
+2. Run:
    ```
-   python scripts/kb_api.py upload "{文件绝对路径}" "{文档标题}"
+   python scripts/kb_api.py upload "{absolute_file_path}" "{document_title}"
    ```
-3. 支持的文件类型: .txt .pdf .docx .md
-4. 返回上传结果（包含 document_id）
+3. Supported formats: `.txt` `.pdf` `.docx` `.md`
+4. Returns upload result with `document_id`
 
-### 创建纯文本文档
+### Create a Text Document
 
-1. 获取用户提供的标题和文本内容
-2. 执行脚本:
+1. Get the title and text content from the user
+2. Run:
    ```
-   python scripts/kb_api.py create "{文档标题}" "{文本内容}"
+   python scripts/kb_api.py create "{title}" "{content}"
    ```
-3. 返回创建结果（包含 document_id）
+3. Returns creation result with `document_id`
 
-### 搜索知识库并获取 AI 整理答案
+### Search with AI Answer (RAG)
 
-1. 提取用户的查询关键词
-2. 执行脚本:
+1. Extract the user's query
+2. Run:
    ```
-   python scripts/kb_api.py search_answer "{用户的查询内容}"
+   python scripts/kb_api.py search_answer "{query}"
    ```
-3. 解析返回的 JSON，提取 `answer` 字段和 `results` 中的来源信息
-4. 以结构化方式呈现答案和来源
+3. Parse the returned JSON: extract `answer` and source documents from `sources`
+4. Present the answer with source citations
 
-### 仅搜索文档（不生成答案）
+### Search Documents Only
 
-1. 提取用户的搜索关键词
-2. 执行脚本:
+1. Extract the user's search keywords
+2. Run:
    ```
-   python scripts/kb_api.py search "{搜索关键词}"
+   python scripts/kb_api.py search "{keywords}"
    ```
-3. 解析返回的搜索结果列表
+3. Parse and display the ranked search results
 
-### 列出所有文档
+### List All Documents
 
-1. 执行脚本:
+1. Run:
    ```
    python scripts/kb_api.py list
    ```
-2. 展示文档列表
+2. Display the document list
 
-### 查看文档详情
+### View Document Details
 
-1. 获取文档 ID
-2. 执行脚本:
+1. Get the document ID
+2. Run:
    ```
    python scripts/kb_api.py detail "{document_id}"
    ```
-3. 展示文档内容
+3. Display the document content
 
 ## Output Format
 
-### 上传/创建文档时:
-✅ 文档 "{标题}" 已成功添加到知识库 (ID: {document_id})
+### Upload / Create:
+Document "{title}" has been added to the knowledge base (ID: {document_id})
 
-### 搜索并整理答案时:
-📚 **知识库查询结果**
+### Search with AI Answer:
+**Knowledge Base Query Result**
 
-{AI 整理的答案内容}
+{AI-generated answer based on retrieved documents}
 
-**参考来源:**
-- 📄 {文档标题} (相关度: {score})
+**Sources:**
+- {document_title} (relevance: {score})
 
-### 列出文档时:
-📂 **文档列表** (共 {n} 篇)
-1. 📄 {标题} - {创建时间}
+### List Documents:
+**Documents** ({n} total)
+1. {title} — {created_at}
 2. ...
 
 ## Configuration
 
-在使用前，需要设置环境变量 `KB_API_BASE` 指向知识库服务地址。
-默认值: `http://127.0.0.1:8080`
+Set the environment variable `KB_API_BASE` to point to the Memora backend.
+Default: `http://127.0.0.1:8080`
+
+Source code & setup guide: https://github.com/zzlzzlzzl15/Memora

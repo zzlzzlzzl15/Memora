@@ -1,9 +1,16 @@
 ---
 name: personal-knowledge-base
 description: >
-  查询和管理个人知识库（Memora）。支持搜索文档、获取AI整理答案、列出文档、查看详情、上传文件和创建文本文档。
-  Use when: 用户询问知识库中的内容、想要搜索文档、查看文档列表、上传文件到知识库、创建新文档或获取某个主题的知识整理。
-  NOT for: 通用闲聊、实时新闻查询、与知识库无关的任务。
+  Personal Knowledge Base (Memora) — Semantic search, AI-powered Q&A, document management.
+  Supports: search, AI answers with sources, list, detail, file upload (PDF/DOCX/TXT/MD), create text documents.
+  个人知识库（Memora）— 语义搜索、AI 智能问答、文档管理。
+  Use when: user asks about stored documents, wants to search/upload/create documents, or needs AI-organized answers from their knowledge base.
+  NOT for: general chat, real-time news, tasks unrelated to the knowledge base.
+metadata:
+  openclaw:
+    requires:
+      env:
+        - KB_API_BASE
 ---
 
 # Personal Knowledge Base (Memora)

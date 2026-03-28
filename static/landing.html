@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stellarmind - 智能知识管理平台</title>
+    <style>
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5568d3;
+            --secondary: #764ba2;
+            --accent: #f093fb;
+            --text-dark: #1a202c;
+            --text-light: #718096;
+            --bg-light: #f7fafc;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            overflow-x: hidden;
+            color: var(--text-dark);
+            background: #ffffff;
+        }
+
+        /* 导航栏 */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+            padding: 20px 0;
+            transition: all 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            padding: 15px 0;
+            box-shadow: 0 2px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-container {
+            max-width: 100%;
+            margin: 0;
+            padding: 0 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo img {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+        }
+
+        /* Beta 彩色标识 */
+        .beta-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            margin-left: 10px;
+            margin-bottom: -2px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #ffffff;
+            -webkit-text-fill-color: #ffffff;
+            background: linear-gradient(135deg, #f59e0b 0%, #667eea 100%);
+            border-radius: 9999px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+            letter-spacing: 0.5px;
+            vertical-align: baseline;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .lang-toggle-btn {
+            padding: 8px 16px;
+            background: transparent;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            color: var(--primary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .lang-toggle-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .login-btn {
+            padding: 10px 24px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Hero区域 */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow: hidden;
+            padding-top: 80px;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .floating-shapes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.3;
+            animation: float 15s infinite ease-in-out;
+        }
+
+        .shape1 {
+            width: 300px;
+            height: 300px;
+            background: #f093fb;
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .shape2 {
+            width: 200px;
+            height: 200px;
+            background: #4facfe;
+            top: 60%;
+            right: 10%;
+            animation-delay: 2s;
+        }
+
+        .shape3 {
+            width: 250px;
+            height: 250px;
+            background: #43e97b;
+            bottom: 10%;
+            left: 50%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-30px) scale(1.1); }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            color: white;
+            max-width: 900px;
+            padding: 0 40px;
+        }
+
+        .hero-title {
+            font-size: 64px;
+            font-weight: 800;
+            margin-bottom: 24px;
+            line-height: 1.2;
+            animation: fadeInUp 1s ease;
+        }
+
+        .hero-subtitle {
+            font-size: 24px;
+            margin-bottom: 40px;
+            opacity: 0.95;
+            animation: fadeInUp 1s ease 0.2s;
+            animation-fill-mode: both;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            animation: fadeInUp 1s ease 0.4s;
+            animation-fill-mode: both;
+        }
+
+        .btn-primary {
+            padding: 16px 40px;
+            background: white;
+            color: var(--primary);
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-secondary {
+            padding: 16px 40px;
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: white;
+            color: var(--primary);
+            transform: translateY(-3px);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 特性区域 */
+        .features {
+            padding: 120px 40px;
+            background: var(--bg-light);
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 60px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .features-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 40px;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.2);
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .feature-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text-dark);
+        }
+
+        .feature-desc {
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--text-light);
+        }
+
+        /* 工作流程区域 */
+        .workflow {
+            padding: 120px 40px;
+            background: white;
+        }
+
+        .workflow-steps {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .step {
+            text-align: center;
+            position: relative;
+        }
+
+        .step-number {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 700;
+            color: white;
+            margin: 0 auto 20px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .step-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .step-desc {
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        /* CTA区域 */
+        .cta {
+            padding: 120px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="2" fill="white" opacity="0.1"/></svg>');
+            animation: bgMove 20s linear infinite;
+        }
+
+        @keyframes bgMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(100px, 100px); }
+        }
+
+        .cta-content {
+            position: relative;
+            z-index: 10;
+        }
+
+        .cta-title {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 24px;
+        }
+
+        .cta-subtitle {
+            font-size: 20px;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+
+        /* Footer */
+        .footer {
+            background: #1a202c;
+            color: white;
+            padding: 60px 40px 30px;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .footer-logo {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .footer-text {
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 30px;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 30px;
+            margin-top: 30px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* 滚动动画 */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <img src="/static/logo.svg" alt="Stellarmind">
+                <span>Stellarmind</span><span class="beta-badge" style="color:#fff">Beta</span>
+            </div>
+            <div class="nav-right">
+                <button class="lang-toggle-btn" id="langToggle">
+                    <span id="langText">中文 / EN</span>
+                </button>
+                <button class="login-btn" id="loginBtn" onclick="window.location.href='/static/index.html'">
+                    <span data-zh="用户登录" data-en="Login">用户登录</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero区域 -->
+    <section class="hero">
+        <div class="floating-shapes">
+            <div class="shape shape1"></div>
+            <div class="shape shape2"></div>
+            <div class="shape shape3"></div>
+        </div>
+        <div class="hero-content">
+            <h1 class="hero-title" data-zh="智能知识管理平台" data-en="AI-Powered Knowledge Management">智能知识管理平台</h1>
+            <p class="hero-subtitle" data-zh="基于向量数据库和大语言模型，打造您的个人智能知识库" data-en="Build your intelligent knowledge base with vector database and LLM">基于向量数据库和大语言模型，打造您的个人智能知识库</p>
+            <div class="hero-buttons">
+                <button class="btn-primary" onclick="window.location.href='/static/index.html'" data-zh="立即开始" data-en="Get Started">立即开始</button>
+                <button class="btn-secondary" onclick="document.getElementById('features').scrollIntoView({behavior: 'smooth'})" data-zh="了解更多" data-en="Learn More">了解更多</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- 特性区域 -->
+    <section class="features" id="features">
+        <h2 class="section-title fade-in" data-zh="核心功能" data-en="Core Features">核心功能</h2>
+        <div class="features-grid">
+            <div class="feature-card fade-in">
+                <div class="feature-icon">📚</div>
+                <h3 class="feature-title" data-zh="智能文档管理" data-en="Smart Document Management">智能文档管理</h3>
+                <p class="feature-desc" data-zh="支持PDF、Word、Excel等多种格式，自动向量化存储，快速检索定位" data-en="Support PDF, Word, Excel and more, with automatic vectorization and fast retrieval">支持PDF、Word、Excel等多种格式，自动向量化存储，快速检索定位</p>
+            </div>
+            <div class="feature-card fade-in">
+                <div class="feature-icon">🔍</div>
+                <h3 class="feature-title" data-zh="语义搜索" data-en="Semantic Search">语义搜索</h3>
+                <p class="feature-desc" data-zh="基于语义理解的智能搜索，准确找到相关内容，而非简单关键词匹配" data-en="Intelligent search based on semantic understanding, finding relevant content beyond keywords">基于语义理解的智能搜索，准确找到相关内容，而非简单关键词匹配</p>
+            </div>
+            <div class="feature-card fade-in">
+                <div class="feature-icon">🤖</div>
+                <h3 class="feature-title" data-zh="AI对话助手" data-en="AI Chat Assistant">AI对话助手</h3>
+                <p class="feature-desc" data-zh="结合大语言模型，智能回答问题，整理知识要点，提升工作效率" data-en="Powered by LLM to answer questions and organize knowledge intelligently">结合大语言模型，智能回答问题，整理知识要点，提升工作效率</p>
+            </div>
+            <div class="feature-card fade-in">
+                <div class="feature-icon">🌐</div>
+                <h3 class="feature-title" data-zh="网页抓取" data-en="Web Scraping">网页抓取</h3>
+                <p class="feature-desc" data-zh="一键抓取网页内容，自动提取关键信息，纳入知识库管理" data-en="One-click web scraping to extract key information into your knowledge base">一键抓取网页内容，自动提取关键信息，纳入知识库管理</p>
+            </div>
+            <div class="feature-card fade-in">
+                <div class="feature-icon">📊</div>
+                <h3 class="feature-title" data-zh="使用统计" data-en="Usage Analytics">使用统计</h3>
+                <p class="feature-desc" data-zh="可视化统计数据，直观展示使用情况，助您更好管理知识资产" data-en="Visual analytics to help you manage your knowledge assets better">可视化统计数据，直观展示使用情况，助您更好管理知识资产</p>
+            </div>
+            <div class="feature-card fade-in">
+                <div class="feature-icon">🔒</div>
+                <h3 class="feature-title" data-zh="安全可靠" data-en="Secure & Reliable">安全可靠</h3>
+                <p class="feature-desc" data-zh="完善的用户认证体系，数据加密存储，保护您的知识隐私" data-en="Complete authentication system and encrypted storage for your privacy">完善的用户认证体系，数据加密存储,保护您的知识隐私</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 工作流程 -->
+    <section class="workflow">
+        <h2 class="section-title fade-in" data-zh="使用流程" data-en="How It Works">使用流程</h2>
+        <div class="workflow-steps">
+            <div class="step fade-in">
+                <div class="step-number">1</div>
+                <h3 class="step-title" data-zh="上传文档" data-en="Upload Documents">上传文档</h3>
+                <p class="step-desc" data-zh="支持多种格式文档上传，或直接抓取网页内容" data-en="Upload various document formats or scrape web content">支持多种格式文档上传，或直接抓取网页内容</p>
+            </div>
+            <div class="step fade-in">
+                <div class="step-number">2</div>
+                <h3 class="step-title" data-zh="智能处理" data-en="AI Processing">智能处理</h3>
+                <p class="step-desc" data-zh="自动向量化存储，建立语义索引，构建知识图谱" data-en="Automatic vectorization and semantic indexing">自动向量化存储，建立语义索引，构建知识图谱</p>
+            </div>
+            <div class="step fade-in">
+                <div class="step-number">3</div>
+                <h3 class="step-title" data-zh="智能检索" data-en="Smart Search">智能检索</h3>
+                <p class="step-desc" data-zh="通过对话方式提问，快速定位相关内容，获取答案" data-en="Ask questions conversationally and get instant answers">通过对话方式提问，快速定位相关内容，获取答案</p>
+            </div>
+            <div class="step fade-in">
+                <div class="step-number">4</div>
+                <h3 class="step-title" data-zh="知识整理" data-en="Knowledge Organization">知识整理</h3>
+                <p class="step-desc" data-zh="AI自动整理要点，生成摘要，助您高效管理知识" data-en="AI-powered summarization and knowledge organization">AI自动整理要点，生成摘要，助您高效管理知识</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA区域 -->
+    <section class="cta">
+        <div class="cta-content">
+            <h2 class="cta-title fade-in" data-zh="准备好开启您的智能知识之旅了吗？" data-en="Ready to Start Your Intelligent Knowledge Journey?">准备好开启您的智能知识之旅了吗？</h2>
+            <p class="cta-subtitle fade-in" data-zh="立即注册，体验AI驱动的知识管理新方式" data-en="Sign up now and experience AI-powered knowledge management">立即注册，体验AI驱动的知识管理新方式</p>
+            <button class="btn-primary fade-in" onclick="window.location.href='/static/index.html'" data-zh="免费试用" data-en="Try for Free">免费试用</button>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-logo">Stellarmind</div>
+            <p class="footer-text" data-zh="让知识管理更智能，让工作效率更高效" data-en="Making knowledge management smarter and work more efficient">让知识管理更智能，让工作效率更高效</p>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Stellarmind. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 语言切换
+        let currentLang = 'zh';
+        const langToggle = document.getElementById('langToggle');
+        
+        langToggle.addEventListener('click', () => {
+            currentLang = currentLang === 'zh' ? 'en' : 'zh';
+            updateLanguage();
+        });
+
+        function updateLanguage() {
+            document.querySelectorAll('[data-zh]').forEach(el => {
+                const text = currentLang === 'zh' ? el.getAttribute('data-zh') : el.getAttribute('data-en');
+                if (el.tagName === 'INPUT' || el.tagName === 'BUTTON') {
+                    if (el.querySelector('span')) {
+                        el.querySelector('span').textContent = text;
+                    } else {
+                        el.textContent = text;
+                    }
+                } else {
+                    el.textContent = text;
+                }
+            });
+            
+            // 更新语言按钮文本
+            document.getElementById('langText').textContent = currentLang === 'zh' ? 'EN / 中文' : '中文 / EN';
+        }
+
+        // 导航栏滚动效果
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // 滚动动画
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            observer.observe(el);
+        });
+
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

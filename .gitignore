@@ -1,0 +1,104 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE / Editor
+.vscode/
+.idea/
+.trae/
+.claude/
+.qoder/
+.spec-workflow/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+logs/
+*.log
+nohup.out
+
+# User uploads
+uploads/
+!uploads/.gitkeep
+
+# User avatars
+static/avatars/
+!static/avatars/.gitkeep
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+personal_knowledgebase.db
+
+# MySQL data (Docker volume)
+mysql_data/
+
+# Vector database (auto-generated)
+qdrant_data/
+!qdrant_data/.gitkeep
+
+# Model cache (auto-generated)
+huggingface_cache/
+!huggingface_cache/.gitkeep
+
+# Environment variables (contains secrets)
+.env
+.env.local
+.env.*.local
+.env.production
+
+# Tests
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Temp scripts / migration output
+sync_output.txt
+test_upload.txt
+test_*.py
+check_*.py
+sync_*.py
+query
+query_*.py
+migrate_*.py
+cleanup_*.py
+clear_*.py
+fix_*.py
+download_*.py
+
+# PID file
+.memora.pid
+
+# Misc
+*.local

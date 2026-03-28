@@ -1,0 +1,4 @@
+# BGE Reranker依赖
+# 安装命令: pip install -U FlagEmbedding
+
+FlagEmbedding>=1.2.0

@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stellarmind</title>
+<link rel="stylesheet" href="/static/style.css?v=fix-history-panel-20251205">
+</head>
+<body>
+    <!-- 语言切换按钮 - 单用户模式下默认隐藏 -->
+    <div class="language-toggle" style="display: none;">
+        <button id="lang-toggle-btn" class="lang-btn">
+            <span id="lang-zh" class="lang-option active">中文</span><span class="lang-separator">/</span><span id="lang-en" class="lang-option">EN</span>
+        </button>
+    </div>
+    
+    <!-- 登录容器 - 单用户模式下默认隐藏 -->
+    <div id="auth-container" style="display: none;">
+        <!-- 品牌标识 -->
+        <div class="auth-brand">
+            <img src="/static/logo.svg" alt="Stellarmind logo" class="auth-brand-logo">
+            <span class="auth-brand-title">Stellarmind</span><span class="beta-badge" style="color:#fff">Beta</span>
+        </div>
+        <div id="login-form">
+            <div class="input-group">
+                <input type="text" id="login-username" placeholder="用户名或邮箱" required>
+            </div>
+            <div class="input-group">
+                <input type="password" id="login-password" placeholder="密码" required>
+            </div>
+            <button id="login-btn">登录</button>
+            <div class="auth-switches">
+                <span class="forgot-text">忘记用户名？</span>
+                <a href="#" class="forgot-text" id="forgot-username">邮箱登录</a>
+            </div>
+            <p><span id="login-footer-text">Don't have an account?</span> <a href="#" id="show-register">Register here</a></p>
+        </div>
+        <!-- 邮箱验证码登录表单 -->
+        <div id="email-otp-login-form" style="display: none;">
+            <div class="input-group">
+                <input type="email" id="email-otp-email" placeholder="邮箱地址" required>
+            </div>
+            <div class="otp-row">
+                <input type="text" id="email-otp-code" placeholder="验证码" required>
+                <button id="send-email-otp-btn" type="button">发送验证码</button>
+            </div>
+            <button id="email-otp-login-btn">登录</button>
+            <p><a href="#" id="back-to-login-from-email-otp">返回密码登录</a></p>
+        </div>
+        <div id="register-form" style="display: none;">
+            <div class="input-group">
+                <input type="text" id="register-username" placeholder="用户名" required>
+            </div>
+            <div class="input-group">
+                <input type="password" id="register-password" placeholder="设置密码" required>
+            </div>
+            <div class="input-group">
+                <input type="text" id="register-phone" placeholder="手机号（可选）">
+            </div>
+            <div class="input-group">
+                <input type="email" id="register-email" placeholder="邮箱地址" required>
+            </div>
+            <div class="otp-row">
+                <input type="text" id="register-otp-code" placeholder="输入邮箱验证码" required>
+                <button id="send-register-otp-btn" type="button">获取验证码</button>
+            </div>
+            <button id="register-btn">立即注册</button>
+            <p><span id="register-footer-text">Already have an account?</span> <a href="#" id="show-login">Login here</a></p>
+        </div>
+    </div>
+
+    <div id="main-container" style="display: flex;">
+        <div id="header">
+            <h1 class="brand"><img src="/static/logo.svg" alt="Stellarmind logo" class="brand-logo"><span class="brand-title">Stellarmind</span><span class="beta-badge" style="color:#fff">Beta</span></h1>
+            <div id="user-info">
+                <div class="user-avatar-container">
+                    <div class="user-avatar" id="user-avatar">
+                        <span id="avatar-text"></span>
+                    </div>
+                    <div class="user-dropdown" id="user-dropdown" style="display: none;">
+                        <div class="dropdown-header">
+                            <span id="dropdown-username"></span>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item" id="menu-upload-avatar">
+                            <span>🖼️</span> 上传头像
+                        </a>
+                        <a href="#" class="dropdown-item" id="menu-profile">
+                            <span>👤</span> 个人信息
+                        </a>
+                        <a href="#" class="dropdown-item" id="menu-statistics">
+                            <span>📊</span> 使用统计
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item" id="menu-language">
+                            <span>🌐</span>
+                            <span id="menu-lang-zh" class="lang-option active">中文</span><span id="menu-lang-zh-check" class="lang-check">✓</span>
+                            <span class="lang-separator">/</span>
+                            <span id="menu-lang-en" class="lang-option">EN</span><span id="menu-lang-en-check" class="lang-check">✓</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item" id="menu-logout">
+                            <span>🚪</span> 退出登录
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="content-container">
+            <div id="document-management">
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                    <h2 id="docs-title">Documents</h2>
+                    <button id="open-trash-btn">回收站</button>
+                </div>
+                <!-- 文档内容包装器：包含文档列表和预览面板 -->
+                <div class="document-content-wrapper">
+                    <!-- 左栏内的文档预览面板：与列表互斥显示 -->
+                    <div id="document-viewer" style="display: none;">
+                        <div class="doc-panel">
+                            <div class="doc-panel-header">
+                                <h3 id="doc-view-title">文档预览</h3>
+                                <button id="back-to-docs-btn">返回</button>
+                            </div>
+                            <div id="doc-view-content" class="doc-panel-body"></div>
+                        </div>
+                    </div>
+                    <div id="document-list"></div>
+                </div>
+                <!-- 上传表单固定在底部 -->
+                <div id="upload-form">
+                    <h3 id="upload-form-title">Upload Document</h3>
+                    <input type="file" id="file-input" required>
+                    <input type="text" id="document-title" placeholder="Document Title" required>
+                    <button id="upload-btn">Upload</button>
+                </div>
+            </div>
+
+            <div id="trash-management" style="display:none;">
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                    <h2 id="trash-title">Recycle Bin</h2>
+                    <button id="back-to-docs-from-trash-btn">返回文档</button>
+                </div>
+                <!-- 回收站内容包装器：与文档管理保持相同结构 -->
+                <div class="document-content-wrapper">
+                    <div id="deleted-document-list"></div>
+                </div>
+                <!-- 占位区域：与上传表单保持相同空间，确保布局一致 -->
+                <div class="trash-placeholder"></div>
+            </div>
+            <div id="chat-container">
+                <!-- 历史面板放在 chat-container 内 -->
+                <div id="history-panel" class="history-panel" aria-hidden="true" role="dialog" aria-label="知识查询历史会话边栏"></div>
+                <div class="chat-header">
+                    <div class="chat-title-row">
+                        <div id="mode-tabs" class="mode-tabs" role="tablist" aria-label="选择模式">
+                            <button id="tab-query" class="mode-tab active" type="button" role="tab" aria-selected="true">知识查询</button>
+                            <button id="tab-organize" class="mode-tab" type="button" role="tab" aria-selected="false">知识梳理</button>
+                        </div>
+                        <!-- 历史按钮放在标签页组内，与标签页保持一致风格 -->
+                        <button id="history-toggle" class="history-toggle" title="打开知识查询历史" aria-label="打开知识查询历史">☰</button>
+                    </div>
+                    <button id="upload-source-btn" class="primary-action" style="display:none">上传来源</button>
+                </div>
+                <div id="chat-window">
+                </div>
+                
+                <div id="chat-input">
+                    <input type="text" id="chat-message" placeholder="输入问题，例如：总结最近上传的文档要点">
+                    <button id="send-chat-btn">发送</button>
+                </div>
+            </div>
+
+            <div id="studio-panel">
+                <div class="studio-header">
+                    <h2 id="studio-title">Studio</h2>
+                </div>
+                <div class="studio-grid">
+                    <div class="studio-card disabled">
+                        <div class="studio-card-title" id="audio-title">音频预览</div>
+                        <div class="studio-card-desc" id="audio-desc">预留功能，后续开放</div>
+                    </div>
+                    <div class="studio-card disabled">
+                        <div class="studio-card-title" id="mindmap-title">思维导图</div>
+                        <div class="studio-card-desc" id="mindmap-desc">预留功能，后续开放</div>
+                    </div>
+                    <div class="studio-card disabled">
+                        <div class="studio-card-title" id="report-title">报告生成</div>
+                        <div class="studio-card-desc" id="report-desc">预留功能，后续开放</div>
+                    </div>
+                    <div class="studio-card disabled">
+                        <div class="studio-card-title" id="more-title">更多</div>
+                        <div class="studio-card-desc" id="more-desc">模块位占位</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 上传来源弹窗 -->
+        <div id="source-modal" class="modal-overlay" style="display:none;">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3>上传来源</h3>
+                    <button class="modal-close" id="source-modal-close">✕</button>
+                </div>
+                <div class="modal-tabs">
+                    <button class="tab active" id="tab-url">网址</button>
+                    <button class="tab" id="tab-file">文档</button>
+                </div>
+                <div class="modal-body">
+                    <div id="tab-url-body" class="tab-body" style="display:block;">
+                        <label>来源网址</label>
+                        <input type="text" id="source-url-input" placeholder="https://example.com/article" />
+                        <label>标题（可选）</label>
+                        <input type="text" id="source-url-title" placeholder="为该来源设置标题" />
+                        <div id="url-crawl-progress" class="progress" style="display:none;" aria-live="polite">
+                            <div id="url-crawl-progress-bar" class="progress-bar" style="width:0%"></div>
+                            <span id="url-crawl-progress-label" class="progress-label">抓取中… 0%</span>
+                        </div>
+                        <p class="tip">系统将尝试抓取网页文本并进行知识梳理与总结。</p>
+                        <div class="modal-actions">
+                            <button id="submit-url-btn" class="primary-action">抓取并整理</button>
+                        </div>
+                    </div>
+                    <div id="tab-file-body" class="tab-body" style="display:none;">
+                        <label>选择文件</label>
+                        <input type="file" id="source-file-input" />
+                        <label>标题</label>
+                        <input type="text" id="source-file-title" placeholder="为该文档设置标题" />
+                        <div class="modal-actions">
+                            <button id="submit-file-btn" class="primary-action">上传</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 使用统计弹窗 -->
+    <div id="stats-modal" class="modal-overlay" style="display:none;">
+        <div class="modal stats-modal">
+            <div class="modal-header">
+                <h3 id="stats-title">📊 使用统计</h3>
+                <button class="modal-close" id="stats-modal-close">✕</button>
+            </div>
+            <div class="modal-body">
+                <!-- 横向布局容器 -->
+                <div class="stats-layout">
+                    <!-- 左侧：月份选择和统计指标 -->
+                    <div class="stats-left">
+                        <div class="stats-controls">
+                            <label for="stats-month-picker" id="stats-month-label">选择月份</label>
+                            <input type="month" id="stats-month-picker" />
+                        </div>
+                        <div class="stats-summary">
+                            <div class="stats-summary-item">
+                                <div class="stats-summary-label">查询总数</div>
+                                <div class="stats-summary-value" id="stats-total-queries">0</div>
+                            </div>
+                            <div class="stats-summary-item">
+                                <div class="stats-summary-label">新增文档</div>
+                                <div class="stats-summary-value" id="stats-total-added">0</div>
+                            </div>
+                            <div class="stats-summary-item">
+                                <div class="stats-summary-label">删除文档</div>
+                                <div class="stats-summary-value" id="stats-total-deleted">0</div>
+                            </div>
+                            <div class="stats-summary-item">
+                                <div class="stats-summary-label">活跃天数</div>
+                                <div class="stats-summary-value" id="stats-active-days">0</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 右侧：热力图 -->
+                    <div class="stats-right">
+                        <div class="stats-grid-container">
+                            <div class="stats-weekdays">
+                                <div class="stats-weekday">日</div>
+                                <div class="stats-weekday">一</div>
+                                <div class="stats-weekday">二</div>
+                                <div class="stats-weekday">三</div>
+                                <div class="stats-weekday">四</div>
+                                <div class="stats-weekday">五</div>
+                                <div class="stats-weekday">六</div>
+                            </div>
+                            <div id="stats-grid" class="stats-grid" aria-label="使用统计贡献图"></div>
+                        </div>
+                        <div class="stats-legend">
+                            <span>活跃度：</span>
+                            <div class="stats-legend-items">
+                                <div class="stats-legend-item">
+                                    <div class="stats-cell level-0"></div>
+                                    <span>0</span>
+                                </div>
+                                <div class="stats-legend-item">
+                                    <div class="stats-cell level-1"></div>
+                                    <span>1-2</span>
+                                </div>
+                                <div class="stats-legend-item">
+                                    <div class="stats-cell level-2"></div>
+                                    <span>3-5</span>
+                                </div>
+                                <div class="stats-legend-item">
+                                    <div class="stats-cell level-3"></div>
+                                    <span>6-9</span>
+                                </div>
+                                <div class="stats-legend-item">
+                                    <div class="stats-cell level-4"></div>
+                                    <span>10+</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="stats-tooltip" class="stats-tooltip" style="display:none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 头像上传弹窗 -->
+    <div id="avatar-modal" class="modal-overlay" style="display:none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="avatar-modal-title">上传头像</h3>
+                <button class="modal-close" id="avatar-modal-close">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="avatar-upload-container">
+                    <div class="avatar-preview" id="avatar-preview">
+                        <img id="avatar-preview-img" style="display:none;" alt="头像预览">
+                        <span id="avatar-preview-text">点击选择图片</span>
+                    </div>
+                    <input type="file" id="avatar-file-input" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" style="display:none;">
+                    <div class="avatar-tips">
+                        <p>• 支持 JPG、PNG、GIF、WebP 格式</p>
+                        <p>• 文件大小不超过 5MB</p>
+                        <p>• 建议使用正方形图片</p>
+                    </div>
+                    <div class="modal-actions">
+                        <button id="avatar-upload-btn" class="primary-action" disabled>上传</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 个人信息编辑弹窗 -->
+    <div id="profile-modal" class="modal-overlay" style="display:none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="profile-modal-title">个人信息</h3>
+                <button class="modal-close" id="profile-modal-close">✕</button>
+            </div>
+            <div class="modal-body">
+                <form id="profile-form">
+                    <label for="profile-username">用户名</label>
+                    <input type="text" id="profile-username" placeholder="请输入用户名" required minlength="3" maxlength="50">
+                    
+                    <label for="profile-email">邮箱</label>
+                    <div class="info-display-row">
+                        <input type="email" id="profile-email" placeholder="请输入邮箱" required readonly>
+                        <button type="button" id="change-email-btn" class="secondary-action">修改邮箱</button>
+                    </div>
+                    
+                    <label for="profile-phone">手机号</label>
+                    <input type="tel" id="profile-phone" placeholder="请输入手机号" maxlength="20">
+                    
+                    <label for="profile-password-display">密码</label>
+                    <div class="info-display-row">
+                        <input type="password" id="profile-password-display" value="********" readonly>
+                        <button type="button" id="change-password-btn" class="secondary-action">修改密码</button>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="button" id="profile-cancel-btn" class="secondary-action">取消</button>
+                        <button type="submit" id="profile-save-btn" class="primary-action">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 修改邮箱弹窗 -->
+    <div id="change-email-modal" class="modal-overlay" style="display:none;">
+        <div class="modal email-change-modal">
+            <div class="modal-header">
+                <h3>✉️ 修改邮箱</h3>
+                <button class="modal-close" id="change-email-modal-close">✕</button>
+            </div>
+            <div class="modal-body">
+                <form id="change-email-form">
+                    <div class="email-info-box">
+                        <div class="current-email-label">当前邮箱</div>
+                        <div class="current-email-value" id="old-email-display"></div>
+                    </div>
+                    
+                    <label for="new-email">新邮箱地址</label>
+                    <input type="email" id="new-email" placeholder="请输入新邮箱地址" required>
+                    
+                    <label for="new-email-otp">邮箱验证码</label>
+                    <div class="otp-row">
+                        <input type="text" id="new-email-otp" placeholder="请输入验证码" required maxlength="6">
+                        <button type="button" id="send-new-email-otp-btn" class="secondary-action">发送验证码</button>
+                    </div>
+                    
+                    <div class="email-tip">
+                        <span class="tip-icon">💡</span>
+                        <span class="tip-text">验证码将发送至新邮箱，请注意查收</span>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="button" id="change-email-cancel-btn" class="secondary-action">取消</button>
+                        <button type="submit" id="change-email-save-btn" class="primary-action">确认修改</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 修改密码弹窗 -->
+    <div id="change-password-modal" class="modal-overlay" style="display:none;">
+        <div class="modal email-change-modal">
+            <div class="modal-header">
+                <h3>🔒 修改密码</h3>
+                <button class="modal-close" id="change-password-modal-close">✕</button>
+            </div>
+            <div class="modal-body">
+                <form id="change-password-form">
+                    <div class="email-info-box" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-color: #fcd34d;">
+                        <div class="current-email-label">当前密码</div>
+                        <div class="current-email-value" style="color: #92400e;">********</div>
+                    </div>
+                    
+                    <label for="old-password">旧密码</label>
+                    <input type="password" id="old-password" placeholder="请输入旧密码" required minlength="6" maxlength="100">
+                    
+                    <label for="new-password">新密码</label>
+                    <input type="password" id="new-password" placeholder="请输入新密码" required minlength="6" maxlength="100">
+                    
+                    <label for="new-password-confirm">确认新密码</label>
+                    <input type="password" id="new-password-confirm" placeholder="请再次输入新密码" required minlength="6" maxlength="100">
+                    
+                    <div class="email-tip">
+                        <span class="tip-icon">💡</span>
+                        <span class="tip-text">密码长度至少6位，建议包含字母、数字和特殊字符</span>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="button" id="change-password-cancel-btn" class="secondary-action">取消</button>
+                        <button type="submit" id="change-password-save-btn" class="primary-action">确认修改</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+            <script src="/static/script.js?v=fix-history-panel-20251205"></script>
+</body>
+</html>

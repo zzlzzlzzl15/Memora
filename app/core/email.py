@@ -53,7 +53,7 @@ class EmailService:
             message = MIMEMultipart("alternative")
             message["Subject"] = Header(subject, 'utf-8')
             # 修复From字段格式，符合RFC标准
-            message["From"] = str(Header("Stellarmind", 'utf-8')) + f" <{self.smtp_username}>"
+            message["From"] = str(Header("Memora", 'utf-8')) + f" <{self.smtp_username}>"
             message["To"] = to_email
             
             # 创建纯文本部分
@@ -111,7 +111,7 @@ class EmailService:
         Returns:
             bool: 发送成功返回True，失败返回False
         """
-        subject = "Stellarmind 验证码"
+        subject = "Memora 验证码"
         
         # 纯文本版本
         text_body = f"""您的验证码是: {otp_code}
@@ -123,7 +123,7 @@ class EmailService:
 此邮件由系统自动发送，请勿回复。
 
 ---
-Stellarmind 团队
+Memora 团队
 """
         
         # HTML版本
@@ -142,7 +142,7 @@ Stellarmind 团队
                     <!-- Header -->
                     <tr>
                         <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px; text-align: center;">
-                            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">Stellarmind</h1>
+                            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">Memora</h1>
                             <p style="margin: 10px 0 0 0; color: rgba(255, 255, 255, 0.9); font-size: 14px;">您的智能知识助手</p>
                         </td>
                     </tr>
@@ -181,7 +181,7 @@ Stellarmind 团队
                     <tr>
                         <td style="background-color: #f9fafb; padding: 30px; text-align: center; border-top: 1px solid #e5e7eb;">
                             <p style="margin: 0 0 10px 0; color: #9ca3af; font-size: 12px;">此邮件由系统自动发送，请勿直接回复</p>
-                            <p style="margin: 0; color: #9ca3af; font-size: 12px;">© 2024 Stellarmind. All rights reserved.</p>
+                            <p style="margin: 0; color: #9ca3af; font-size: 12px;">© 2024 Memora. All rights reserved.</p>
                         </td>
                     </tr>
                 </table>

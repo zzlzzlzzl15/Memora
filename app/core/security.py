@@ -4,8 +4,8 @@
 """
 from typing import Dict, Any
 
-# 单用户模式的固定用户ID
-DEFAULT_USER_ID = 1
+# 单用户模式的固定用户ID（使用字符串以兼容 documents.user_id varchar(36) 和 uploads/<user_id>/ 路径拼接）
+DEFAULT_USER_ID = "1"
 DEFAULT_USERNAME = "admin"
 
 

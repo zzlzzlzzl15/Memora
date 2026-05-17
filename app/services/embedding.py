@@ -63,14 +63,13 @@ class EmbeddingService:
             self.sparse_enabled = False
             return
         try:
-            # 使用本地缓存，不连接HuggingFace
-            # 明确设置trust_remote_code=False以避免网络连接
+            # 优先使用本地缓存；缓存缺失时允许从 HuggingFace 下载到 cache_dir
             self.sparse_model = SparseTextEmbedding(
                 model_name=settings.sparse_embedding_model,
                 cache_dir=settings.fastembed_cache_path,
                 providers=["CPUExecutionProvider"],  # 仅使用CPU
-                trust_remote_code=False,  # 不信任远程代码，强制使用本地缓存
-                local_files_only=True  # 仅使用本地文件，不尝试下载
+                trust_remote_code=False,  # 不信任远程代码
+                local_files_only=False  # 允许首次下载到 cache_dir，之后自动走本地
             )
             logger.info(f"成功加载稀疏嵌入模型: {settings.sparse_embedding_model}")
         except Exception as e:

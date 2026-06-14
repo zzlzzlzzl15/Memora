@@ -121,7 +121,9 @@ class DocumentORM(Base, TimestampMixin):
     file_size = Column(Integer, nullable=True)  # 文件大小（字节）
     doc_type = Column(String(20), nullable=False, default='other')  # text, pdf, docx, markdown, other
     content = Column(LONGTEXT, nullable=True)  # 文本内容（对于纯文本文档，使用LONGTEXT支持大文档）
-    status = Column(String(20), nullable=False, default='indexed')  # uploading, processing, indexed, failed, deleted
+    status = Column(String(20), nullable=False, default='pending')  # pending, parsing, chunking, embedding, completed, failed, deleted
+    progress = Column(Integer, nullable=True, default=0)  # 处理进度百分比 0-100
+    error_message = Column(Text, nullable=True)  # 失败时的错误信息
     vector_id = Column(Text, nullable=True)  # Qdrant向量ID（可能包含多个ID用逗号分隔）
     
     # 软删除字段

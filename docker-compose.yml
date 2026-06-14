@@ -36,6 +36,43 @@ services:
       timeout: 5s
       retries: 5
 
+  neo4j:
+    image: neo4j:5-community
+    container_name: memora-neo4j
+    restart: always
+    environment:
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:-changeme}
+      NEO4J_PLUGINS: '[]'
+      NEO4J_server_memory_pagecache_size: 128M
+      NEO4J_server_memory_heap_initial__size: 256M
+      NEO4J_server_memory_heap_max__size: 512M
+    ports:
+      - "127.0.0.1:7474:7474"
+      - "127.0.0.1:7687:7687"
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:7474 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: memora-redis
+    restart: always
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   app:
     build: .
     container_name: memora-app
@@ -43,7 +80,7 @@ services:
     env_file:
       - .env.production
     ports:
-      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:8000:8080"
     volumes:
       - app_uploads:/app/uploads
       - app_logs:/app/logs
@@ -52,6 +89,10 @@ services:
       mysql:
         condition: service_healthy
       qdrant:
+        condition: service_healthy
+      neo4j:
+        condition: service_started
+      redis:
         condition: service_healthy
 
   nginx:
@@ -81,6 +122,9 @@ services:
 volumes:
   mysql_data:
   qdrant_data:
+  neo4j_data:
+  neo4j_logs:
+  redis_data:
   app_uploads:
   app_logs:
   hf_cache:

@@ -2694,13 +2694,43 @@ document.addEventListener('DOMContentLoaded', () => {
                 title.classList.add('rag-source-title');
                 title.textContent = `[来源${idx + 1}] ${r.title || '未命名'} (score: ${(r.score ?? 0).toFixed(3)})`;
 
-                const snippet = document.createElement('div');
-                snippet.classList.add('rag-source-snippet');
-                const content = (r.content || '').replace(/\s+/g, ' ').trim();
-                snippet.textContent = content.length > 260 ? `${content.slice(0, 260)}…` : content;
-
                 item.appendChild(title);
-                item.appendChild(snippet);
+
+                // 图片类型：优先渲染缩略图，点击可查看大图
+                if (r.content_type === 'image' && (r.thumbnail_url || r.image_url)) {
+                    const imgWrap = document.createElement('div');
+                    imgWrap.classList.add('rag-source-image-wrap');
+
+                    const img = document.createElement('img');
+                    img.classList.add('rag-source-thumbnail');
+                    img.src = r.thumbnail_url || r.image_url;
+                    img.alt = r.title || '图片';
+                    img.loading = 'lazy';
+                    img.title = '点击查看大图';
+                    img.style.cssText = 'max-width:160px;max-height:120px;cursor:pointer;border-radius:4px;border:1px solid #ddd;margin-top:6px;';
+                    if (r.image_url) {
+                        img.addEventListener('click', () => window.open(r.image_url, '_blank'));
+                    }
+                    imgWrap.appendChild(img);
+                    item.appendChild(imgWrap);
+
+                    // 图片描述（captions）作为补充文字
+                    const content = (r.content || '').replace(/\s+/g, ' ').trim();
+                    if (content) {
+                        const caption = document.createElement('div');
+                        caption.classList.add('rag-source-snippet');
+                        caption.style.cssText = 'font-size:12px;color:#888;margin-top:4px;';
+                        caption.textContent = content.length > 120 ? `${content.slice(0, 120)}…` : content;
+                        item.appendChild(caption);
+                    }
+                } else {
+                    const snippet = document.createElement('div');
+                    snippet.classList.add('rag-source-snippet');
+                    const content = (r.content || '').replace(/\s+/g, ' ').trim();
+                    snippet.textContent = content.length > 260 ? `${content.slice(0, 260)}…` : content;
+                    item.appendChild(snippet);
+                }
+
                 container.appendChild(item);
             });
         } else {

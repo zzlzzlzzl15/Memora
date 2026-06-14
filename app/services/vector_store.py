@@ -1,6 +1,7 @@
 import uuid
 from typing import List, Dict, Any, Optional
 from datetime import datetime
+from pathlib import Path
 from qdrant_client.models import PointStruct, Filter, FieldCondition, MatchValue, SearchRequest, SparseVector, NamedSparseVector, NamedVector
 from qdrant_client.http.exceptions import UnexpectedResponse
 from loguru import logger
@@ -62,7 +63,16 @@ class VectorStoreService:
                     "start_pos": chunk.start_pos,
                     "end_pos": chunk.end_pos,
                     "user_id": user_id,
-                    "title": document_title or f"文档块 {chunk.chunk_index}",  # 存储文档标题
+                    "title": document_title or f"文档块 {chunk.chunk_index}",
+                    "content_type": getattr(chunk, 'content_type', 'text') or 'text',
+                    "image_path": getattr(chunk, 'image_path', None),
+                    "captions": getattr(chunk, 'captions', []) or [],
+                    "section_path": getattr(chunk, 'section_path', None),
+                    "section_title": getattr(chunk, 'section_title', None),
+                    "page_number": getattr(chunk, 'page_number', None),
+                    "total_chunks": getattr(chunk, 'total_chunks', None),
+                    "context_before": getattr(chunk, 'context_before', None),
+                    "context_after": getattr(chunk, 'context_after', None),
                     "created_at": datetime.utcnow().isoformat(),
                     "metadata": chunk.metadata or {}
                 }
@@ -145,7 +155,16 @@ class VectorStoreService:
                             "start_pos": chunk.start_pos,
                             "end_pos": chunk.end_pos,
                             "user_id": user_id,
-                            "title": document_title or f"文档块 {chunk.chunk_index}",  # 存储文档标题
+                            "title": document_title or f"文档块 {chunk.chunk_index}",
+                            "content_type": getattr(chunk, 'content_type', 'text') or 'text',
+                            "image_path": getattr(chunk, 'image_path', None),
+                            "captions": getattr(chunk, 'captions', []) or [],
+                            "section_path": getattr(chunk, 'section_path', None),
+                            "section_title": getattr(chunk, 'section_title', None),
+                            "page_number": getattr(chunk, 'page_number', None),
+                            "total_chunks": getattr(chunk, 'total_chunks', None),
+                            "context_before": getattr(chunk, 'context_before', None),
+                            "context_after": getattr(chunk, 'context_after', None),
                             "created_at": datetime.utcnow().isoformat(),
                             "metadata": chunk.metadata or {}
                         }
@@ -281,12 +300,53 @@ class VectorStoreService:
             results = []
             for scored_point in search_result:
                 payload = scored_point.payload
-                
+
+                # 构建多模态媒体信息
+                content_type = payload.get("content_type", "text") or "text"
+                media = None
+                if content_type != "text":
+                    image_path = payload.get("image_path")
+                    captions = payload.get("captions", [])
+                    media = {}
+                    if image_path:
+                        # 将绝对路径转为 API URL
+                        parts = Path(image_path).parts
+                        # 查找 uploads 之后的 user_id 和文件名
+                        try:
+                            uploads_idx = parts.index("uploads")
+                            if len(parts) > uploads_idx + 2:
+                                uid = parts[uploads_idx + 1]
+                                fname = parts[-1]
+                                media["url"] = f"/api/v1/images/{uid}/{fname}"
+                                media["thumbnail_url"] = f"/api/v1/images/{uid}/{fname}?size=thumbnail"
+                        except (ValueError, IndexError):
+                            pass
+                    if captions:
+                        media["captions"] = captions
+                    # 内容格式
+                    if content_type == "table":
+                        media["content_format"] = "markdown"
+                    elif content_type == "equation":
+                        media["content_format"] = "latex"
+                    elif content_type == "image":
+                        ext = Path(image_path).suffix.lstrip('.') if image_path else 'jpg'
+                        media["content_format"] = ext
+
                 result = SearchResult(
                     document_id=payload["document_id"],
                     title=payload.get("title", f"文档块 {payload['chunk_index']}"),
                     content=payload["content"],
                     score=scored_point.score,
+                    content_type=content_type,
+                    section_path=payload.get("section_path"),
+                    section_title=payload.get("section_title"),
+                    page_number=payload.get("page_number"),
+                    context_before=payload.get("context_before"),
+                    context_after=payload.get("context_after"),
+                    image_url=media.get("url") if media else None,
+                    thumbnail_url=media.get("thumbnail_url") if media else None,
+                    image_path=payload.get("image_path") if content_type == "image" else None,
+                    media=media,
                     metadata=payload.get("metadata", {}),
                     created_at=datetime.fromisoformat(payload["created_at"])
                 )

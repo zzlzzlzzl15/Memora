@@ -1,10 +1,15 @@
 from typing import List, Optional, AsyncGenerator
 import asyncio
+import base64
 import httpx
 import json
+import os
+from pathlib import Path
 from loguru import logger
 from config.settings import settings
 from app.models.document import SearchResult
+from app.core.resilience import async_retry, llm_circuit_breaker, CircuitBreaker
+from app.core.prompts import PROMPTS
 
 class LLMService:
     """LLM服务：使用OpenAI兼容接口（如DeepSeek）进行知识整理输出
@@ -20,7 +25,7 @@ class LLMService:
         # 专用LLM日志记录器（写入 llm.log）
         self._llm_logger = logger.bind(component="llm")
 
-    def _build_messages(self, query: str, results: List[SearchResult]) -> list:
+    def _build_messages(self, query: str, results: List[SearchResult], fused_context: str = None) -> list:
         # 构建上下文（限制每条内容长度，避免超长）
         def clip(text: str, max_len: int = 600) -> str:
             return text[:max_len] + ("..." if len(text) > max_len else "")
@@ -29,60 +34,33 @@ class LLMService:
             title = getattr(r, "title", f"片段{i}")
             context_lines.append(f"[来源{i}] 标题: {title}\n内容: {clip(r.content)}\n得分: {getattr(r, 'score', 0):.4f}")
         context_text = "\n\n".join(context_lines) if context_lines else "(无检索上下文)"
-
-        system_prompt = (
-            "你是专业的中文知识整理助手。你需要:\n"
-            "1) 根据检索到的上下文进行聚合、去重与结构化总结;\n"
-            "2) 若信息不足，请明确指出不确定或建议补充;\n"
-            "3) 输出使用中文，优先给出直接答案，其后给出要点列表与参考来源编号;\n"
-            "4) 避免编造信息，并使用严谨语气。\n"
-            "5)你只输出针对用户问题的最终结论。仅基于提供的检索上下文回答;\n"
-            "6)不提供来源、引用、链接或编号;不展示推理过程或背景;不复述或改写问题。\n"
-            "7)若问题包含多个子问题，逐条分行给出结论;信息不足则回答‘无法确定’，并用最少字指出缺失的关键信息。\n"
-            "8)使用中文，避免客套和身份说明。\n"
-        )
-        user_prompt = (
-            f"用户问题: {query}\n\n"
-            f"检索上下文如下（可能包含多个片段）:\n{context_text}\n\n"
-            f"请仅输出结论，不提供来源或过程。"
-        )
+    
+        # 如果有知识图谱融合上下文，拼接到检索上下文后面
+        if fused_context:
+            context_text = f"{context_text}\n\n--- 知识图谱增强上下文 ---\n{fused_context}"
+    
         return [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
+            {"role": "system", "content": PROMPTS["KNOWLEDGE_QUERY_SYSTEM"]},
+            {"role": "user", "content": PROMPTS["KNOWLEDGE_QUERY_USER"].format(
+                query=query, context=context_text
+            )},
         ]
 
     def _build_messages_for_text(self, text: str, title: Optional[str] = None, source_url: Optional[str] = None) -> list:
         # 对超长文本进行裁剪，避免超过提供商限制
-        def clip(text: str, max_len: int = 8000) -> str:  # 增加长度限制，支持更长上下文
+        def clip(text: str, max_len: int = 8000) -> str:
             return text[:max_len] + ("..." if len(text) > max_len else "")
         meta = []
         if title:
             meta.append(f"标题: {title}")
         if source_url:
             meta.append(f"来源: {source_url}")
-        meta_text = ("\n".join(meta)).strip()
-        system_prompt = (
-            "你是专业的中文知识整理与汇总助手。你的任务是：\n"
-            "1) 以用户当前提供的主要内容（问题或文档）为核心，进行全面、详细的知识整理；\n"
-            "2) 利用历史对话上下文理解背景和前后关联，但不要让历史内容喊宾夺主；\n"
-            "3) 输出应当结构化、分层次，包含：\n"
-            "   - 总体概述：简要总结主题和背景\n"
-            "   - 详细内容：针对当前主要内容进行充分展开，保留重要细节\n"
-            "   - 关键要点：以列表形式归纳核心知识点\n"
-            "   - 总结与建议：给出综合结论和后续建议（如适用）\n"
-            "4) 回答应当详尽充分，不要过于简略或概括，需要包含具体的信息和例子；\n"
-            "5) 对于历史对话中的相关内容，可以引用和整合，但要确保与当前主题相关；\n"
-            "6) 使用中文输出，语气专业严谨，逻辑清晰；\n"
-            "7) 如果信息不足，请明确指出不确定之处并给出补充建议。"
-        )
-        user_prompt = (
-            (f"元信息: {meta_text}\n\n" if meta_text else "") +
-            f"{clip(text)}\n\n"
-            f"请对上述内容进行详细的知识整理，以前面的主要内容为核心，结合后面的历史上下文（如有）理解背景。"
-        )
+        meta_text = ("\n".join(meta) + "\n\n") if meta else ""
         return [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
+            {"role": "system", "content": PROMPTS["TEXT_SUMMARIZE_SYSTEM"]},
+            {"role": "user", "content": PROMPTS["TEXT_SUMMARIZE_USER"].format(
+                meta_text=meta_text, content=clip(text)
+            )},
         ]
 
     async def generate_title(self, text: str, max_len: int = 60) -> str:
@@ -119,31 +97,19 @@ class LLMService:
 
         # 使用LLM生成
         try:
-            client = await self._ensure_client()
-            system_prompt = (
-                "你是中文标题生成助手。根据给出的正文，生成一个简洁、准确的标题，\n"
-                "要求：\n"
-                "1) 仅输出标题文本；\n"
-                "2) 不含标点中的非法文件名字符(\\/:*?\"<>|)；\n"
-                "3) 不超过60个字符；\n"
-                "4) 不要包含引号或括号中的来源链接。"
-            )
             def clip(s: str, n: int = 400):
                 return s[:n] + ("..." if len(s) > n else "")
-            user_prompt = f"正文如下，生成标题：\n{clip(text)}"
             payload = {
                 "model": self.model,
                 "messages": [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
+                    {"role": "system", "content": PROMPTS["TITLE_GENERATE_SYSTEM"]},
+                    {"role": "user", "content": PROMPTS["TITLE_GENERATE_USER"].format(text=clip(text))},
                 ],
                 "temperature": 0.2,
                 "max_tokens": 128,
                 "stream": False,
             }
-            resp = await client.post("/chat/completions", json=payload)
-            resp.raise_for_status()
-            data = resp.json()
+            data = await self._call_llm_api(payload)
             title = data["choices"][0]["message"]["content"].strip()
             self._llm_logger.info(f"[title] len={len(text)} -> {title}")
             return sanitize(title)
@@ -164,7 +130,21 @@ class LLMService:
             self._client = httpx.AsyncClient(base_url=self.api_base, timeout=timeout, headers=headers)
         return self._client
 
-    async def summarize_results(self, query: str, results: List[SearchResult]) -> str:
+    @async_retry(max_attempts=3, base_delay=1.0, max_delay=30.0)
+    async def _call_llm_api(self, payload: dict) -> dict:
+        """带重试的 LLM API 调用（非流式），断路器保护"""
+        client = await self._ensure_client()
+        resp = await client.post("/chat/completions", json=payload)
+        resp.raise_for_status()
+        return resp.json()
+
+    @async_retry(max_attempts=2, base_delay=0.5, max_delay=10.0)
+    async def _call_llm_api_stream(self, payload: dict):
+        """带重试的 LLM API 流式调用（返回上下文管理器）"""
+        client = await self._ensure_client()
+        return client.stream("POST", "/chat/completions", json=payload)
+
+    async def summarize_results(self, query: str, results: List[SearchResult], fused_context: str = None) -> str:
         """对检索结果进行知识整理，返回答案文本。"""
         # 无API Key，执行本地回退整理
         if not self.api_key:
@@ -174,27 +154,29 @@ class LLMService:
             return text
 
         try:
-            client = await self._ensure_client()
             payload = {
                 "model": self.model,
-                "messages": self._build_messages(query, results),
+                "messages": self._build_messages(query, results, fused_context=fused_context),
                 "temperature": self.temperature,
                 "max_tokens": self.max_tokens,
                 "stream": False,
             }
-            resp = await client.post("/chat/completions", json=payload)
-            resp.raise_for_status()
-            data = resp.json()
+            data = await self._call_llm_api(payload)
             content = data["choices"][0]["message"]["content"]
             self._llm_logger.info(f"[sync] query={query}\n{content}")
             return content.strip()
+        except CircuitBreaker.CircuitBreakerOpen as e:
+            logger.warning(f"LLM 断路器已打开，直接降级: {e}")
+            text = self._local_summarize(query, results)
+            self._llm_logger.info(f"[sync-circuit-open] query={query}\n{text}")
+            return text
         except Exception as e:
             logger.error(f"LLM整理失败，回退本地摘要: {e}")
             text = self._local_summarize(query, results)
             self._llm_logger.info(f"[sync-fallback] query={query}\n{text}")
             return text
 
-    async def summarize_results_stream(self, query: str, results: List[SearchResult]) -> AsyncGenerator[str, None]:
+    async def summarize_results_stream(self, query: str, results: List[SearchResult], fused_context: str = None) -> AsyncGenerator[str, None]:
         """对检索结果进行知识整理，按增量流式返回文本。
         - 当未提供API Key时，使用本地回退摘要并以小块流式输出。
         - 当配置了OpenAI兼容接口时，使用SSE流式解析choices[0].delta.content。
@@ -216,13 +198,13 @@ class LLMService:
             client = await self._ensure_client()
             payload = {
                 "model": self.model,
-                "messages": self._build_messages(query, results),
+                "messages": self._build_messages(query, results, fused_context=fused_context),
                 "temperature": self.temperature,
                 "max_tokens": self.max_tokens,
                 "stream": True,
             }
             buffer = ""
-            async with client.stream("POST", "/chat/completions", json=payload) as resp:
+            async with client.stream("POST", "/chat/completions", json=payload) as resp:  # noqa: stream
                 async for line in resp.aiter_lines():
                     if not line:
                         continue
@@ -279,7 +261,6 @@ class LLMService:
             return result
 
         try:
-            client = await self._ensure_client()
             payload = {
                 "model": self.model,
                 "messages": self._build_messages_for_text(text, title=title, source_url=source_url),
@@ -287,12 +268,15 @@ class LLMService:
                 "max_tokens": self.max_tokens,
                 "stream": False,
             }
-            resp = await client.post("/chat/completions", json=payload)
-            resp.raise_for_status()
-            data = resp.json()
+            data = await self._call_llm_api(payload)
             content = data["choices"][0]["message"]["content"]
             self._llm_logger.info(f"[sync] text_len={len(text)}\n{content}")
             return content.strip()
+        except CircuitBreaker.CircuitBreakerOpen as e:
+            logger.warning(f"LLM 断路器已打开，直接降级: {e}")
+            result = self._local_summarize_text(text)
+            self._llm_logger.info(f"[sync-circuit-open] text_len={len(text)}\n{result}")
+            return result
         except Exception as e:
             logger.error(f"LLM整理失败，回退本地摘要: {e}")
             result = self._local_summarize_text(text)
@@ -428,6 +412,179 @@ class LLMService:
                 first = p[:120].strip() + ("..." if len(p) > 120 else "")
             bullets.append(f"- {first}")
         return "\n".join(bullets) if bullets else (content[:240] + ("..." if len(content) > 240 else ""))
+
+    # ─── VLM 增强问答（参照 RAG-Anything aquery_vlm_enhanced）──────────────────
+
+    @property
+    def vlm_available(self) -> bool:
+        """VLM 是否可用"""
+        return (
+            settings.vlm_enabled
+            and bool(settings.vlm_api_key or settings.vlm_api_base)
+        )
+
+    def _encode_image_base64(self, image_path: str) -> Optional[str]:
+        """将图片文件编码为 base64，参照 RAG-Anything _process_image_paths_for_vlm"""
+        try:
+            path = Path(image_path).resolve()
+            upload_dir = Path(settings.upload_dir).resolve()
+            if not str(path).startswith(str(upload_dir)):
+                logger.warning(f"VLM: 图片路径超出安全范围: {path}")
+                return None
+            if not path.exists():
+                return None
+            if path.stat().st_size > 10 * 1024 * 1024:
+                logger.warning(f"VLM: 图片过大，跳过: {path}")
+                return None
+            with open(path, "rb") as f:
+                return base64.b64encode(f.read()).decode("utf-8")
+        except Exception as e:
+            logger.warning(f"VLM: 图片编码失败 {image_path}: {e}")
+            return None
+
+    def _build_vlm_messages(self, query: str, results: List[SearchResult],
+                            fused_context: Optional[str] = None) -> list:
+        """构建 VLM 多模态 messages，参照 RAG-Anything _build_vlm_messages_with_images。
+        - 文本 context 里用 [VLM_IMAGE_N] 标记图片位置
+        - content_parts 按文本 + 图片 base64 交替排列
+        - 若无图片，回退到纯文本 messages
+        """
+        import re as _re
+
+        def clip(t, n=600):
+            return t[:n] + ("..." if len(t) > n else "")
+
+        images_b64: List[str] = []
+        result_img_idx: dict = {}
+        for i, r in enumerate(results):
+            if getattr(r, "content_type", "text") == "image" and getattr(r, "image_path", None):
+                b64 = self._encode_image_base64(r.image_path)
+                if b64:
+                    images_b64.append(b64)
+                    result_img_idx[i] = len(images_b64)
+
+        context_lines = []
+        for i, r in enumerate(results):
+            title = getattr(r, "title", f"片段{i+1}")
+            line = f"[来源{i+1}] 标题: {title}\n内容: {clip(r.content)}\n得分: {getattr(r,'score',0):.4f}"
+            img_num = result_img_idx.get(i)
+            if img_num:
+                line += f"\n[VLM_IMAGE_{img_num}]"
+            context_lines.append(line)
+        context_text = "\n\n".join(context_lines) if context_lines else "(无检索上下文)"
+        if fused_context:
+            context_text += f"\n\n--- 知识图谱增强上下文 ---\n{fused_context}"
+
+        if not images_b64:
+            return self._build_messages(query, results, fused_context)
+
+        content_parts = []
+        segments = context_text.split("[VLM_IMAGE_")
+        for idx, seg in enumerate(segments):
+            if idx == 0:
+                if seg.strip():
+                    content_parts.append({"type": "text", "text": seg})
+            else:
+                m = _re.match(r"(\d+)\](.*)", seg, _re.DOTALL)
+                if m:
+                    img_num = int(m.group(1)) - 1
+                    remaining = m.group(2)
+                    if 0 <= img_num < len(images_b64):
+                        content_parts.append({
+                            "type": "image_url",
+                            "image_url": {"url": f"data:image/jpeg;base64,{images_b64[img_num]}"}
+                        })
+                    if remaining.strip():
+                        content_parts.append({"type": "text", "text": remaining})
+
+        content_parts.append({"type": "text",
+            "text": PROMPTS["VLM_USER_SUFFIX"].format(query=query)})
+
+        return [
+            {"role": "system", "content": PROMPTS["VLM_SYSTEM"]},
+            {"role": "user", "content": content_parts},
+        ]
+
+    async def summarize_results_vlm(
+        self, query: str, results: List[SearchResult],
+        fused_context: Optional[str] = None
+    ) -> str:
+        """使用 VLM 多模态整理检索结果。若 VLM 不可用或无图片，自动降级到普通 LLM。"""
+        if not self.vlm_available:
+            return await self.summarize_results(query, results, fused_context)
+        has_images = any(getattr(r, "content_type", "text") == "image"
+                        and getattr(r, "image_path", None) for r in results)
+        if not has_images:
+            return await self.summarize_results(query, results, fused_context)
+        try:
+            messages = self._build_vlm_messages(query, results, fused_context)
+            vlm_base = settings.vlm_api_base or self.api_base
+            vlm_key = settings.vlm_api_key or self.api_key
+            headers = {"Authorization": f"Bearer {vlm_key}"} if vlm_key else {}
+            async with httpx.AsyncClient(
+                base_url=vlm_base, timeout=httpx.Timeout(300.0, connect=10.0), headers=headers
+            ) as client:
+                payload = {"model": settings.vlm_model, "messages": messages,
+                           "temperature": self.temperature, "max_tokens": self.max_tokens, "stream": False}
+                resp = await client.post("/chat/completions", json=payload)
+                resp.raise_for_status()
+                content = resp.json()["choices"][0]["message"]["content"]
+                self._llm_logger.info(f"[vlm-sync] query={query}\n{content}")
+                return content.strip()
+        except Exception as e:
+            logger.error(f"VLM 整理失败，回退普通 LLM: {e}")
+            return await self.summarize_results(query, results, fused_context)
+
+    async def summarize_results_vlm_stream(
+        self, query: str, results: List[SearchResult],
+        fused_context: Optional[str] = None
+    ) -> AsyncGenerator[str, None]:
+        """使用 VLM 多模态流式整理。参照 RAG-Anything aquery_vlm_enhanced。"""
+        if not self.vlm_available:
+            async for chunk in self.summarize_results_stream(query, results, fused_context):
+                yield chunk
+            return
+        has_images = any(getattr(r, "content_type", "text") == "image"
+                        and getattr(r, "image_path", None) for r in results)
+        if not has_images:
+            async for chunk in self.summarize_results_stream(query, results, fused_context):
+                yield chunk
+            return
+        try:
+            messages = self._build_vlm_messages(query, results, fused_context)
+            vlm_base = settings.vlm_api_base or self.api_base
+            vlm_key = settings.vlm_api_key or self.api_key
+            headers = {"Authorization": f"Bearer {vlm_key}"} if vlm_key else {}
+            async with httpx.AsyncClient(
+                base_url=vlm_base, timeout=httpx.Timeout(300.0, connect=10.0), headers=headers
+            ) as client:
+                payload = {"model": settings.vlm_model, "messages": messages,
+                           "temperature": self.temperature, "max_tokens": self.max_tokens, "stream": True}
+                buffer = ""
+                async with client.stream("POST", "/chat/completions", json=payload) as resp:
+                    async for line in resp.aiter_lines():
+                        if not line:
+                            continue
+                        if line.startswith("data: "):
+                            data_str = line[6:].strip()
+                            if data_str == "[DONE]":
+                                break
+                            if not data_str:
+                                continue
+                            try:
+                                obj = json.loads(data_str)
+                                delta = ((obj.get("choices") or [{}])[0].get("delta") or {}).get("content")
+                                if delta:
+                                    buffer += delta
+                                    yield delta
+                            except Exception:
+                                pass
+                if buffer:
+                    self._llm_logger.info(f"[vlm-stream-final] query={query}\n{buffer}")
+        except Exception as e:
+            logger.error(f"VLM 流式整理失败，回退普通 LLM: {e}")
+            async for chunk in self.summarize_results_stream(query, results, fused_context):
+                yield chunk
 
 # 全局实例
 _llm_service: Optional[LLMService] = None

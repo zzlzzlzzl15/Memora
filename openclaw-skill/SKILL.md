@@ -1,5 +1,5 @@
 ---
-name: personal-knowledge-base
+name: memora
 description: >
   Memora — A self-hosted RAG (Retrieval-Augmented Generation) personal knowledge base.
   Built with FastAPI + Qdrant + DashScope/OpenAI Embedding + DeepSeek/OpenAI LLM.

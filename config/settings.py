@@ -75,6 +75,79 @@ class Settings(BaseSettings):
     # 文本分块配置（可通过环境变量覆盖）
     text_chunk_size: int = int(os.getenv("TEXT_CHUNK_SIZE") or 500)
     text_chunk_overlap: int = int(os.getenv("TEXT_CHUNK_OVERLAP") or 100)
+
+    # 结构化解析配置（MinerU）
+    use_mineru: bool = os.getenv("USE_MINERU", "false").lower() == "true"
+    mineru_method: str = os.getenv("MINERU_METHOD") or "auto"  # auto, ocr, txt
+
+    # 多模态处理配置
+    vlm_api_base: Optional[str] = os.getenv("VLM_API_BASE")  # 视觉语言模型 API
+    vlm_api_key: Optional[str] = os.getenv("VLM_API_KEY")
+    vlm_model: str = os.getenv("VLM_MODEL") or "qwen-vl-max"  # 默认使用通义千问 VL
+    vlm_enabled: bool = os.getenv("VLM_ENABLED", "false").lower() == "true"
+
+    # 解析缓存配置
+    parse_cache_enabled: bool = os.getenv("PARSE_CACHE_ENABLED", "true").lower() == "true"
+    parse_cache_max_age_days: int = int(os.getenv("PARSE_CACHE_MAX_AGE_DAYS") or 30)
+
+    # 语义分块配置
+    chunk_strategy: str = os.getenv("CHUNK_STRATEGY") or "fixed"  # fixed 或 semantic
+    semantic_threshold: float = float(os.getenv("SEMANTIC_THRESHOLD") or 0.5)
+    min_chunk_size: int = int(os.getenv("MIN_CHUNK_SIZE") or 100)
+
+    # 上下文感知配置（参照 RAG-Anything ContextConfig）
+    # context_window: 上下文窗口大小（page 模式=页数，chunk 模式=块数）
+    context_window: int = int(os.getenv("CONTEXT_WINDOW") or 1)
+    # context_mode: "page"（按页边界提取） / "chunk"（按块序号提取）
+    context_mode: str = os.getenv("CONTEXT_MODE") or "page"
+    # max_context_tokens: 上下文最大字符数（无 tokenizer 时按字符截断）
+    max_context_tokens: int = int(os.getenv("MAX_CONTEXT_TOKENS") or 2000)
+    # context_include_headers: 是否在上下文中包含 Markdown 标题
+    context_include_headers: bool = os.getenv("CONTEXT_INCLUDE_HEADERS", "true").lower() == "true"
+    # context_include_captions: 是否在上下文中包含图片/表格标题
+    context_include_captions: bool = os.getenv("CONTEXT_INCLUDE_CAPTIONS", "true").lower() == "true"
+    # context_filter_content_types: 纳入上下文的内容类型列表（逗号分隔）
+    context_filter_content_types: str = os.getenv("CONTEXT_FILTER_CONTENT_TYPES", "text")
+
+    # 知识图谱配置（Neo4j）
+    neo4j_enabled: bool = os.getenv("NEO4J_ENABLED", "false").lower() == "true"
+    neo4j_uri: str = os.getenv("NEO4J_URI") or "bolt://localhost:7687"
+    neo4j_user: str = os.getenv("NEO4J_USER") or "neo4j"
+    neo4j_password: str = os.getenv("NEO4J_PASSWORD") or "password"
+    neo4j_database: str = os.getenv("NEO4J_DATABASE") or "neo4j"
+
+    # 图谱查询模式：vector / local / global / hybrid / mix
+    kg_query_mode: str = os.getenv("KG_QUERY_MODE") or "vector"
+
+    # Redis缓存配置
+    redis_enabled: bool = os.getenv("REDIS_ENABLED", "false").lower() == "true"
+    redis_host: str = os.getenv("REDIS_HOST") or "localhost"
+    redis_port: int = int(os.getenv("REDIS_PORT") or 6379)
+    redis_db: int = int(os.getenv("REDIS_DB") or 0)
+    redis_password: Optional[str] = os.getenv("REDIS_PASSWORD") or None
+    redis_max_memory: str = os.getenv("REDIS_MAX_MEMORY") or "256mb"
+    
+    # 文档元数据缓存TTL（秒）
+    document_metadata_cache_ttl: int = int(os.getenv("DOCUMENT_METADATA_CACHE_TTL") or 3600)
+
+    # 查询缓存配置
+    query_cache_enabled: bool = os.getenv("QUERY_CACHE_ENABLED", "true").lower() == "true"
+    query_cache_ttl: int = int(os.getenv("QUERY_CACHE_TTL") or 3600)  # 缓存有效期（秒）
+
+    # LLM 调用韧性配置
+    llm_retry_max_attempts: int = int(os.getenv("LLM_RETRY_MAX_ATTEMPTS") or 3)
+    llm_retry_base_delay: float = float(os.getenv("LLM_RETRY_BASE_DELAY") or 1.0)
+    llm_circuit_breaker_threshold: int = int(os.getenv("LLM_CIRCUIT_BREAKER_THRESHOLD") or 5)
+    llm_circuit_breaker_timeout: float = float(os.getenv("LLM_CIRCUIT_BREAKER_TIMEOUT") or 60.0)
+
+    # 批量导入配置
+    batch_max_concurrent: int = int(os.getenv("BATCH_MAX_CONCURRENT") or 3)  # 最大并发文件数
+
+    # 多模态并发处理配置（参照 RAG-Anything _process_multimodal_content_batch_type_aware）
+    # multimodal_max_parallel: 同时调用 VLM/LLM 的最大并发数（避免 API 限速）
+    multimodal_max_parallel: int = int(os.getenv("MULTIMODAL_MAX_PARALLEL") or 2)
+    # kg_entity_max_parallel: 知识图谱实体提取的最大并发 chunk 数
+    kg_entity_max_parallel: int = int(os.getenv("KG_ENTITY_MAX_PARALLEL") or 3)
     
     # 分页配置
     default_page_size: int = 20

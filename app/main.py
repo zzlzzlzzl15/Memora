@@ -39,6 +39,7 @@ from app.api.llm import router as llm_router
 from app.api.conversations import router as conversations_router
 from app.api.stats import router as stats_router
 from app.api.sessions import router as sessions_router
+from app.api.system import router as system_router
 
 # 获取项目根目录
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -51,6 +52,16 @@ async def lifespan(app: FastAPI):
     logger.info("应用启动：初始化数据库和Qdrant集合")
     # 初始化MySQL表结构
     init_mysql_tables()
+    
+    # 从MySQL加载已有文档到内存存储（解决重启后数据丢失问题）
+    try:
+        from app.services.document_service import get_document_service
+        document_service = get_document_service()
+        loaded_count = document_service.load_documents_from_db()
+        logger.info(f"从数据库加载了 {loaded_count} 个文档到内存")
+    except Exception as e:
+        logger.warning(f"加载数据库文档失败: {e}")
+    
     # 单用户模式：不再需要初始化默认管理员
     # 初始化Qdrant集合（增加容错，不阻断应用启动）
     try:
@@ -64,6 +75,18 @@ async def lifespan(app: FastAPI):
     from app.tasks.cleanup_tasks import cleanup_expired_sessions_task
     cleanup_task = asyncio.create_task(cleanup_expired_sessions_task())
     logger.info("已启动定时清理过期会话任务")
+
+    # 初始化知识图谱连接（Neo4j）
+    if settings.neo4j_enabled:
+        try:
+            from app.services.knowledge_graph import get_knowledge_graph_service
+            kg_service = get_knowledge_graph_service()
+            if kg_service.available:
+                logger.info("Neo4j 知识图谱服务已就绪")
+            else:
+                logger.warning("Neo4j 知识图谱服务不可用")
+        except Exception as e:
+            logger.warning(f"知识图谱初始化失败: {e}")
     
     logger.info("应用启动：初始化完成")
     yield
@@ -74,7 +97,15 @@ async def lifespan(app: FastAPI):
         await cleanup_task
     except asyncio.CancelledError:
         logger.info("定时清理任务已取消")
-    pass
+
+    # 关闭知识图谱连接
+    if settings.neo4j_enabled:
+        try:
+            from app.services.knowledge_graph import get_knowledge_graph_service
+            kg_service = get_knowledge_graph_service()
+            kg_service.close()
+        except Exception:
+            pass
 
 # 创建FastAPI应用实例
 app = FastAPI(
@@ -116,6 +147,7 @@ app.include_router(llm_router, prefix="/api/v1")
 app.include_router(conversations_router, prefix="/api/v1")
 app.include_router(stats_router, prefix="/api/v1")
 app.include_router(sessions_router, prefix="/api/v1")
+app.include_router(system_router)  # system router already has /api/v1/system prefix
 
 # 挂载静态文件目录（必须在路由之后）
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
@@ -123,12 +155,24 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "qdrant_ready": getattr(app.state, "qdrant_ready", None)}
+    kg_status = "disabled"
+    if settings.neo4j_enabled:
+        try:
+            from app.services.knowledge_graph import get_knowledge_graph_service
+            kg_service = get_knowledge_graph_service()
+            kg_status = "ready" if kg_service.available else "unavailable"
+        except Exception:
+            kg_status = "error"
+    return {
+        "status": "healthy",
+        "qdrant_ready": getattr(app.state, "qdrant_ready", None),
+        "knowledge_graph": kg_status,
+    }
 
 if __name__ == "__main__":
     uvicorn.run(
         "app.main:app",
-        host="127.0.0.1",
+        host="0.0.0.0",
         port=8080,
         reload=settings.debug
     )

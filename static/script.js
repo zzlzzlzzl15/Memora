@@ -1,5 +1,7 @@
+// 全局API基础URL
+const apiBaseUrl = window.location.origin;
+
 document.addEventListener('DOMContentLoaded', () => {
-    const apiBaseUrl = window.location.origin;
     console.log('apiBaseUrl:', apiBaseUrl);
     // 优先尝试加载用户提供的自定义 logo
     tryLoadCustomLogo();
@@ -1688,21 +1690,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchDocuments() {
         const token = localStorage.getItem('token');
-        if (!token) return;
+        if (!token) {
+            console.warn('No token found, cannot fetch documents');
+            return;
+        }
 
         try {
+            console.log('Fetching documents from:', `${apiBaseUrl}/api/v1/documents/`);
             const response = await fetch(`${apiBaseUrl}/api/v1/documents/`,
              {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
+            console.log('Response status:', response.status);
             if (response.ok) {
                 const data = await response.json();
+                console.log('Received data:', data);
                 // 适配新的响应格式：{ documents: [...], total: n, skip: n, limit: n }
                 const documents = data.documents || data;
+                console.log('Documents to render:', documents?.length ?? 0);
                 renderDocuments(documents);
             } else {
-                console.error('Failed to fetch documents');
+                console.error('Failed to fetch documents, status:', response.status);
+                const errorText = await response.text();
+                console.error('Error response:', errorText);
             }
         } catch (error) {
             console.error('Error fetching documents:', error);
@@ -1978,13 +1989,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderDocuments(documents) {
         console.log('Render documents count:', documents?.length ?? 0);
+        
+        if (!documentList) {
+            console.error('documentList element not found!');
+            return;
+        }
+        
         documentList.innerHTML = '';
         if (!Array.isArray(documents) || documents.length === 0) {
-            documentList.innerHTML = '<p>No documents found.</p>';
+            documentList.innerHTML = '<p style="color: var(--text-tertiary); padding: 20px; text-align: center;">暂无文档，请上传文件</p>';
+            console.log('No documents to display');
             return;
         }
 
-        documents.forEach(doc => {
+        documents.forEach((doc, index) => {
             const docElement = document.createElement('div');
             docElement.classList.add('document-item');
             docElement.dataset.docId = doc.document_id;
@@ -2005,7 +2023,11 @@ document.addEventListener('DOMContentLoaded', () => {
             docElement.appendChild(titleSpan);
             docElement.appendChild(deleteBtn);
             documentList.appendChild(docElement);
+            
+            console.log(`Rendered document ${index + 1}:`, doc.title);
         });
+        
+        console.log('Total documents rendered:', documents.length);
     }
 
     function renderDeletedDocuments(documents) {
@@ -2910,4 +2932,547 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
     // 页面关闭前尝试关闭会话
     window.addEventListener('beforeunload', () => { try { closeActiveSessions(); } catch (_) {} });
+    
+    // ========== 知识图谱可视化功能 ==========
+    initKnowledgeGraph();
 });
+
+// 知识图谱可视化类 (类似 Obsidian)
+class KnowledgeGraphVisualizer {
+    constructor() {
+        this.canvas = document.getElementById('kg-canvas');
+        this.ctx = this.canvas?.getContext('2d');
+        this.nodes = [];
+        this.edges = [];
+        this.animationId = null;
+        this.isDragging = false;
+        this.draggedNode = null;
+        this.hoveredNode = null;
+        this.transform = { x: 0, y: 0, scale: 1 };
+        
+        // 节点颜色映射 - 根据类型设置不同颜色
+        this.nodeColors = {
+            'Document': '#667eea',      // 文档 - 紫色
+            'Person': '#FF6B6B',        // 人物 - 红色
+            'Organization': '#4ECDC4',  // 组织 - 青色
+            'Location': '#95E1D3',      // 地点 - 绿色
+            'Concept': '#F38181',       // 概念 - 粉色
+            'Event': '#AA96DA',         // 事件 - 淡紫
+            'Entity': '#A8D8EA'         // 实体 - 蓝色
+        };
+        
+        // 力导向布局参数
+        this.forceParams = {
+            repulsion: 800,           // 排斥力
+            attraction: 0.05,         // 吸引力
+            damping: 0.9,             // 阻尼系数
+            centerForce: 0.01,        // 中心力
+            maxVelocity: 5            // 最大速度
+        };
+        
+        this.initEvents();
+    }
+    
+    initEvents() {
+        if (!this.canvas) return;
+        
+        // 鼠标事件
+        this.canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
+        this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+        this.canvas.addEventListener('mouseup', () => this.handleMouseUp());
+        this.canvas.addEventListener('wheel', (e) => this.handleWheel(e), { passive: false });
+        
+        // 窗口大小变化
+        window.addEventListener('resize', () => this.resize());
+    }
+    
+    resize() {
+        if (!this.canvas) return;
+        const container = this.canvas.parentElement;
+        this.canvas.width = container.clientWidth;
+        this.canvas.height = container.clientHeight;
+        this.render();
+    }
+    
+    loadData(data) {
+        // 确保数据有效
+        if (!data || !Array.isArray(data.nodes)) {
+            console.error('Invalid graph data:', data);
+            this.nodes = [];
+            this.edges = [];
+            return;
+        }
+        
+        const width = this.canvas?.width || 800;
+        const height = this.canvas?.height || 600;
+        
+        // 初始化节点位置 - 使用圆形分布，看起来更美观
+        this.nodes = data.nodes.map((node, i) => {
+            const angle = (i / Math.max(data.nodes.length, 1)) * Math.PI * 2;
+            const radius = Math.min(width, height) * 0.3;
+            return {
+                ...node,
+                x: Math.cos(angle) * radius + width / 2,
+                y: Math.sin(angle) * radius + height / 2,
+                vx: 0,
+                vy: 0,
+                radius: 15 + Math.min((node.label || node.name || 'Node').length * 1.5, 25),
+                color: this.getNodeColor(node.type || 'Entity')
+            };
+        });
+        
+        this.edges = Array.isArray(data.edges) ? data.edges : [];
+        
+        // 初始化力导向布局
+        this.initForceLayout();
+    }
+    
+    getNodeColor(type) {
+        return this.nodeColors[type] || this.nodeColors['Entity'];
+    }
+    
+    initForceLayout() {
+        // 如果没有节点或边，直接返回
+        if (this.nodes.length === 0) {
+            console.log('No nodes to layout');
+            return;
+        }
+        
+        const width = this.canvas?.width || 800;
+        const height = this.canvas?.height || 600;
+        const centerX = width / 2;
+        const centerY = height / 2;
+        
+        // 使用配置的参数
+        const { repulsion, attraction, damping, centerForce, maxVelocity } = this.forceParams;
+        
+        // 执行多次迭代使布局稳定
+        const iterations = 150;
+        for (let iter = 0; iter < iterations; iter++) {
+            // 计算斥力（所有节点之间）
+            for (let i = 0; i < this.nodes.length; i++) {
+                for (let j = i + 1; j < this.nodes.length; j++) {
+                    const dx = this.nodes[j].x - this.nodes[i].x;
+                    const dy = this.nodes[j].y - this.nodes[i].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                    
+                    // 斥力与距离平方成反比
+                    const force = repulsion / (dist * dist);
+                    
+                    const fx = (dx / dist) * force;
+                    const fy = (dy / dist) * force;
+                    
+                    this.nodes[i].vx -= fx;
+                    this.nodes[i].vy -= fy;
+                    this.nodes[j].vx += fx;
+                    this.nodes[j].vy += fy;
+                }
+            }
+            
+            // 计算引力（有边的节点之间）
+            for (const edge of this.edges) {
+                const source = this.nodes.find(n => n.id === edge.source);
+                const target = this.nodes.find(n => n.id === edge.target);
+                
+                if (source && target) {
+                    const dx = target.x - source.x;
+                    const dy = target.y - source.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                    
+                    // 引力与距离成正比（弹簧效果）
+                    const force = dist * attraction;
+                    
+                    const fx = (dx / dist) * force;
+                    const fy = (dy / dist) * force;
+                    
+                    source.vx += fx;
+                    source.vy += fy;
+                    target.vx -= fx;
+                    target.vy -= fy;
+                }
+            }
+            
+            // 中心吸引力（防止节点飞散）
+            for (const node of this.nodes) {
+                const dx = centerX - node.x;
+                const dy = centerY - node.y;
+                node.vx += dx * centerForce * 0.1;
+                node.vy += dy * centerForce * 0.1;
+            }
+            
+            // 更新位置并限制速度
+            for (const node of this.nodes) {
+                // 应用阻尼
+                node.vx *= damping;
+                node.vy *= damping;
+                
+                // 限制最大速度
+                const speed = Math.sqrt(node.vx * node.vx + node.vy * node.vy);
+                if (speed > maxVelocity) {
+                    node.vx = (node.vx / speed) * maxVelocity;
+                    node.vy = (node.vy / speed) * maxVelocity;
+                }
+                
+                // 更新位置
+                node.x += node.vx;
+                node.y += node.vy;
+                
+                // 边界约束（保持在画布内）
+                const margin = node.radius + 10;
+                node.x = Math.max(margin, Math.min(width - margin, node.x));
+                node.y = Math.max(margin, Math.min(height - margin, node.y));
+            }
+        }
+    }
+    
+    render() {
+        if (!this.ctx || !this.canvas) return;
+        
+        const { width, height } = this.canvas;
+        this.ctx.clearRect(0, 0, width, height);
+        
+        // 绘制背景网格（类似 Obsidian）
+        this.drawGrid(width, height);
+        
+        this.ctx.save();
+        this.ctx.translate(width / 2 + this.transform.x, height / 2 + this.transform.y);
+        this.ctx.scale(this.transform.scale, this.transform.scale);
+        
+        // 绘制边
+        for (const edge of this.edges) {
+            const source = this.nodes.find(n => n.id === edge.source);
+            const target = this.nodes.find(n => n.id === edge.target);
+            
+            if (source && target) {
+                // 根据边的权重设置透明度
+                const weight = edge.weight || 1.0;
+                const opacity = Math.min(0.6, 0.2 + weight * 0.1);
+                
+                this.ctx.beginPath();
+                this.ctx.moveTo(source.x, source.y);
+                this.ctx.lineTo(target.x, target.y);
+                this.ctx.strokeStyle = `rgba(150, 150, 180, ${opacity})`;
+                this.ctx.lineWidth = 1.5 + weight * 0.5;
+                this.ctx.stroke();
+            }
+        }
+        
+        // 绘制节点
+        for (const node of this.nodes) {
+            const color = node.color || this.getNodeColor(node.type || 'Entity');
+            
+            // 节点光晕效果
+            this.ctx.beginPath();
+            this.ctx.arc(node.x, node.y, node.radius + 5, 0, Math.PI * 2);
+            this.ctx.fillStyle = `${color}33`; // 20% 透明度
+            this.ctx.fill();
+            
+            // 节点阴影
+            this.ctx.beginPath();
+            this.ctx.arc(node.x + 2, node.y + 2, node.radius, 0, Math.PI * 2);
+            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+            this.ctx.fill();
+            
+            // 节点本体 - 使用渐变填充
+            const gradient = this.ctx.createRadialGradient(
+                node.x - node.radius * 0.3,
+                node.y - node.radius * 0.3,
+                0,
+                node.x,
+                node.y,
+                node.radius
+            );
+            gradient.addColorStop(0, this.lightenColor(color, 30));
+            gradient.addColorStop(1, color);
+            
+            this.ctx.beginPath();
+            this.ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
+            this.ctx.fillStyle = gradient;
+            this.ctx.fill();
+            
+            // 节点边框
+            this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+            this.ctx.lineWidth = 2;
+            this.ctx.stroke();
+            
+            // 节点标签
+            this.ctx.fillStyle = 'white';
+            this.ctx.font = 'bold 11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'middle';
+            
+            // 截断长文本，处理null值
+            let label = node.label || node.name || node.id || 'Node';
+            if (label && label.length > 12) {
+                label = label.substring(0, 12) + '...';
+            }
+            
+            // 添加文字阴影提高可读性
+            this.ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+            this.ctx.shadowBlur = 3;
+            this.ctx.fillText(label, node.x, node.y);
+            this.ctx.shadowBlur = 0;
+        }
+        
+        this.ctx.restore();
+    }
+    
+    // 绘制背景网格
+    drawGrid(width, height) {
+        this.ctx.strokeStyle = 'rgba(200, 200, 220, 0.15)';
+        this.ctx.lineWidth = 1;
+        
+        const gridSize = 40;
+        
+        // 垂直线
+        for (let x = 0; x <= width; x += gridSize) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(x, 0);
+            this.ctx.lineTo(x, height);
+            this.ctx.stroke();
+        }
+        
+        // 水平线
+        for (let y = 0; y <= height; y += gridSize) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(0, y);
+            this.ctx.lineTo(width, y);
+            this.ctx.stroke();
+        }
+    }
+    
+    // 颜色变亮辅助函数
+    lightenColor(color, percent) {
+        const num = parseInt(color.replace('#', ''), 16);
+        const amt = Math.round(2.55 * percent);
+        const R = (num >> 16) + amt;
+        const G = (num >> 8 & 0x00FF) + amt;
+        const B = (num & 0x0000FF) + amt;
+        return '#' + (
+            0x1000000 +
+            (R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 +
+            (G < 255 ? (G < 1 ? 0 : G) : 255) * 0x100 +
+            (B < 255 ? (B < 1 ? 0 : B) : 255)
+        ).toString(16).slice(1);
+    }
+    
+    handleMouseDown(e) {
+        const rect = this.canvas.getBoundingClientRect();
+        const x = (e.clientX - rect.left - this.canvas.width / 2 - this.transform.x) / this.transform.scale;
+        const y = (e.clientY - rect.top - this.canvas.height / 2 - this.transform.y) / this.transform.scale;
+        
+        // 检查是否点击了节点
+        for (const node of this.nodes) {
+            const dist = Math.sqrt((x - node.x) ** 2 + (y - node.y) ** 2);
+            if (dist < node.radius) {
+                this.isDragging = true;
+                this.draggedNode = node;
+                break;
+            }
+        }
+    }
+    
+    handleMouseMove(e) {
+        const rect = this.canvas.getBoundingClientRect();
+        const x = (e.clientX - rect.left - this.canvas.width / 2 - this.transform.x) / this.transform.scale;
+        const y = (e.clientY - rect.top - this.canvas.height / 2 - this.transform.y) / this.transform.scale;
+        
+        if (this.isDragging && this.draggedNode) {
+            this.draggedNode.x = x;
+            this.draggedNode.y = y;
+            this.render();
+        } else {
+            // 检查悬停
+            let hovered = null;
+            for (const node of this.nodes) {
+                const dist = Math.sqrt((x - node.x) ** 2 + (y - node.y) ** 2);
+                if (dist < node.radius) {
+                    hovered = node;
+                    break;
+                }
+            }
+            
+            if (hovered !== this.hoveredNode) {
+                this.hoveredNode = hovered;
+                this.canvas.style.cursor = hovered ? 'pointer' : 'grab';
+                this.render();
+            }
+        }
+    }
+    
+    handleMouseUp() {
+        this.isDragging = false;
+        this.draggedNode = null;
+    }
+    
+    handleWheel(e) {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? 0.9 : 1.1;
+        this.transform.scale *= delta;
+        this.transform.scale = Math.max(0.1, Math.min(5, this.transform.scale));
+        this.render();
+    }
+    
+    startAnimation() {
+        const animate = () => {
+            this.render();
+            this.animationId = requestAnimationFrame(animate);
+        };
+        animate();
+    }
+    
+    stopAnimation() {
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+        }
+    }
+}
+
+// 初始化知识图谱功能 (类似 Obsidian)
+function initKnowledgeGraph() {
+    const kgCard = document.getElementById('kg-card');
+    const kgViewContainer = document.getElementById('kg-view-container');
+    const kgRefreshBtn = document.getElementById('kg-refresh-btn');
+    const kgCloseBtn = document.getElementById('kg-close-btn');
+    const kgTabs = document.querySelectorAll('.kg-tab');
+    
+    if (!kgCard || !kgViewContainer) return;
+    
+    let visualizer = null;
+    let isKgViewActive = false;
+    let currentTabType = 'documents'; // 当前显示的图谱类型
+    
+    // 加载图谱数据
+    async function loadGraphData(type) {
+        try {
+            // 显示加载状态
+            document.getElementById('kg-loading-overlay').style.display = 'flex';
+            document.getElementById('kg-canvas').style.display = 'none';
+            
+            // 根据类型选择API端点
+            let apiUrl;
+            if (type === 'documents') {
+                apiUrl = `${apiBaseUrl}/api/v1/documents/knowledge-graph/documents?limit=100`;
+            } else if (type === 'entities') {
+                apiUrl = `${apiBaseUrl}/api/v1/documents/knowledge-graph/entities?limit=200`;
+            } else {
+                apiUrl = `${apiBaseUrl}/api/v1/documents/knowledge-graph/full?limit=150`;
+            }
+            
+            console.log(`Loading ${type} graph from:`, apiUrl);
+            
+            const response = await fetch(apiUrl, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`获取${type === 'documents' ? '文档' : type === 'entities' ? '实体' : ''}图谱失败 (${response.status})`);
+            }
+            
+            const data = await response.json();
+            console.log(`${type} graph data received:`, {
+                total_nodes: data.total_nodes,
+                total_edges: data.total_edges,
+                nodes_sample: data.nodes?.slice(0, 3)
+            });
+            
+            // 初始化可视化器
+            if (!visualizer) {
+                visualizer = new KnowledgeGraphVisualizer();
+            }
+            
+            visualizer.loadData(data);
+            
+            // 等待容器渲染后调整画布大小
+            setTimeout(() => {
+                visualizer.resize();
+                
+                // 隐藏加载，显示画布
+                document.getElementById('kg-loading-overlay').style.display = 'none';
+                document.getElementById('kg-canvas').style.display = 'block';
+                
+                // 更新统计信息
+                if (type === 'documents') {
+                    document.getElementById('kg-doc-count').textContent = data.total_nodes || 0;
+                    document.getElementById('kg-entity-count').textContent = '-';
+                    document.getElementById('kg-relation-count').textContent = data.total_edges || 0;
+                } else if (type === 'entities') {
+                    document.getElementById('kg-doc-count').textContent = '-';
+                    document.getElementById('kg-entity-count').textContent = data.total_nodes || 0;
+                    document.getElementById('kg-relation-count').textContent = data.total_edges || 0;
+                }
+                
+                // 开始渲染
+                visualizer.startAnimation();
+            }, 100);
+            
+            return true;
+        } catch (error) {
+            console.error(`加载${type}图谱失败:`, error);
+            document.getElementById('kg-loading-overlay').innerHTML = `
+                <p style="color: #667eea;">❌ 加载失败: ${error.message}</p>
+                <p style="color: #6c757d; font-size: 14px; margin-top: 8px;">请确保Neo4j服务已启动并有数据</p>
+            `;
+            return false;
+        }
+    }
+    
+    // 点击知识图谱卡片 - 在下方显示图谱视图
+    kgCard.addEventListener('click', async () => {
+        if (isKgViewActive) {
+            // 如果已经显示，滚动到图谱区域
+            kgViewContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            return;
+        }
+        
+        isKgViewActive = true;
+        currentTabType = 'documents'; // 默认显示文档图谱
+        
+        // 显示图谱视图（不隐藏卡片网格）
+        kgViewContainer.style.display = 'flex';
+        
+        // 加载文档图谱
+        await loadGraphData('documents');
+        
+        // 滚动到图谱区域
+        kgViewContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    
+    // 标签切换
+    kgTabs.forEach(tab => {
+        tab.addEventListener('click', async () => {
+            // 移除所有active类
+            kgTabs.forEach(t => t.classList.remove('active'));
+            // 添加当前active类
+            tab.classList.add('active');
+            
+            // 获取要切换的类型
+            const newType = tab.getAttribute('data-type');
+            
+            if (newType !== currentTabType) {
+                currentTabType = newType;
+                await loadGraphData(newType);
+            }
+        });
+    });
+    
+    // 刷新按钮
+    kgRefreshBtn.addEventListener('click', async () => {
+        if (!visualizer) return;
+        
+        // 重新加载当前类型的图谱
+        await loadGraphData(currentTabType);
+    });
+    
+    // 关闭按钮 - 隐藏图谱区域
+    kgCloseBtn.addEventListener('click', () => {
+        kgViewContainer.style.display = 'none';
+        isKgViewActive = false;
+        // 停止动画以节省资源
+        if (visualizer && visualizer.stopAnimation) {
+            visualizer.stopAnimation();
+        }
+    });
+}

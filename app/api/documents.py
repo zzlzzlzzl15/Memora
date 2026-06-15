@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 from uuid import UUID
 from io import BytesIO
+from loguru import logger
 
 from app.models.document import (
     DocumentCreate, DocumentUpdate, Document, SearchQuery, SearchResponse, DocumentType, DocumentListResponse
@@ -941,6 +942,75 @@ async def get_entity_relations(
     except Exception as e:
         req_logger.exception(f"KG.entity: error {type(e).__name__}: {e}")
         raise HTTPException(status_code=500, detail=f"获取实体关系失败: {str(e)}")
+
+
+@router.get("/knowledge-graph/full", summary="获取完整知识图谱数据")
+async def get_full_knowledge_graph(
+    limit: int = Query(200, ge=10, le=500, description="最大节点数量"),
+    current_user: dict = Depends(get_current_active_user),
+    req_logger = Depends(get_request_logger)
+):
+    """获取用户的完整知识图谱数据(用于可视化)"""
+    if not settings.neo4j_enabled:
+        raise HTTPException(status_code=400, detail="知识图谱功能未启用")
+    try:
+        from app.services.knowledge_graph import get_knowledge_graph_service
+        kg_service = get_knowledge_graph_service()
+        if not kg_service.available:
+            raise HTTPException(status_code=503, detail="知识图谱服务不可用")
+        graph_data = kg_service.get_full_graph(current_user["user_id"], limit)
+        return graph_data
+    except HTTPException:
+        raise
+    except Exception as e:
+        req_logger.exception(f"KG.full: error {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail=f"获取图谱数据失败: {str(e)}")
+
+
+@router.get("/knowledge-graph/documents", summary="获取文档图谱数据")
+async def get_document_graph(
+    limit: int = Query(100, ge=10, le=500, description="最大文档数量"),
+    current_user: dict = Depends(get_current_active_user),
+    req_logger = Depends(get_request_logger)
+):
+    """获取文档图谱数据(文档节点和文档间关系)"""
+    if not settings.neo4j_enabled:
+        raise HTTPException(status_code=400, detail="知识图谱功能未启用")
+    try:
+        from app.services.knowledge_graph import get_knowledge_graph_service
+        kg_service = get_knowledge_graph_service()
+        if not kg_service.available:
+            raise HTTPException(status_code=503, detail="知识图谱服务不可用")
+        graph_data = kg_service.get_document_graph(current_user["user_id"], limit)
+        return graph_data
+    except HTTPException:
+        raise
+    except Exception as e:
+        req_logger.exception(f"KG.documents: error {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail=f"获取文档图谱失败: {str(e)}")
+
+
+@router.get("/knowledge-graph/entities", summary="获取实体图谱数据")
+async def get_entity_graph(
+    limit: int = Query(200, ge=10, le=500, description="最大实体数量"),
+    current_user: dict = Depends(get_current_active_user),
+    req_logger = Depends(get_request_logger)
+):
+    """获取实体图谱数据(实体节点和实体间关系)"""
+    if not settings.neo4j_enabled:
+        raise HTTPException(status_code=400, detail="知识图谱功能未启用")
+    try:
+        from app.services.knowledge_graph import get_knowledge_graph_service
+        kg_service = get_knowledge_graph_service()
+        if not kg_service.available:
+            raise HTTPException(status_code=503, detail="知识图谱服务不可用")
+        graph_data = kg_service.get_entity_graph(current_user["user_id"], limit)
+        return graph_data
+    except HTTPException:
+        raise
+    except Exception as e:
+        req_logger.exception(f"KG.entities: error {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail=f"获取实体图谱失败: {str(e)}")
 
 
 # ─── 3.12 文档智能摘要 API ───────────────────────────────────────────────────

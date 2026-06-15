@@ -175,7 +175,13 @@
                 <div class="studio-header">
                     <h2 id="studio-title">Studio</h2>
                 </div>
-                <div class="studio-grid">
+                
+                <!-- 卡片网格 (始终显示) -->
+                <div id="studio-cards-grid" class="studio-grid">
+                    <div class="studio-card" id="kg-card">
+                        <div class="studio-card-title" id="kg-title">🕸️ 知识图谱</div>
+                        <div class="studio-card-desc" id="kg-desc">查看文档实体关系网络</div>
+                    </div>
                     <div class="studio-card disabled">
                         <div class="studio-card-title" id="audio-title">音频预览</div>
                         <div class="studio-card-desc" id="audio-desc">预留功能，后续开放</div>
@@ -188,9 +194,46 @@
                         <div class="studio-card-title" id="report-title">报告生成</div>
                         <div class="studio-card-desc" id="report-desc">预留功能，后续开放</div>
                     </div>
-                    <div class="studio-card disabled">
-                        <div class="studio-card-title" id="more-title">更多</div>
-                        <div class="studio-card-desc" id="more-desc">模块位占位</div>
+                </div>
+                
+                <!-- 知识图谱可视化区域 (在卡片下方，默认隐藏) -->
+                <div id="kg-view-container" style="display:none; margin-top: 20px;">
+                    <!-- 顶部标签切换 -->
+                    <div class="kg-tabs-bar">
+                        <button class="kg-tab active" data-type="documents">📄 文档图谱</button>
+                        <button class="kg-tab" data-type="entities"> 实体图谱</button>
+                    </div>
+                    
+                    <!-- 画布容器 -->
+                    <div id="kg-canvas-container">
+                        <canvas id="kg-canvas"></canvas>
+                        <div id="kg-loading-overlay">
+                            <div class="loading-spinner"></div>
+                            <p>加载知识图谱...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- 底部统计栏 -->
+                    <div id="kg-stats-bar">
+                        <span class="stat-item">
+                            <span class="stat-icon"></span>
+                            <span class="stat-label">文档:</span>
+                            <span class="stat-value" id="kg-doc-count">0</span>
+                        </span>
+                        <span class="stat-item">
+                            <span class="stat-icon">🔵</span>
+                            <span class="stat-label">实体:</span>
+                            <span class="stat-value" id="kg-entity-count">0</span>
+                        </span>
+                        <span class="stat-item">
+                            <span class="stat-icon">⚡</span>
+                            <span class="stat-label">关系:</span>
+                            <span class="stat-value" id="kg-relation-count">0</span>
+                        </span>
+                        <div class="kg-controls">
+                            <button id="kg-refresh-btn" class="icon-btn" title="刷新图谱">🔄</button>
+                            <button id="kg-close-btn" class="icon-btn" title="关闭图谱">✖️</button>
+                        </div>
                     </div>
                 </div>
             </div>

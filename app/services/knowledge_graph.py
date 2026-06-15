@@ -762,6 +762,280 @@ class KnowledgeGraphService:
             logger.error(f"获取图谱统计失败: {e}")
             return {"entity_count": 0, "relation_count": 0, "document_count": 0}
 
+    def get_full_graph(self, user_id: str, limit: int = 200) -> Dict[str, Any]:
+        """获取用户的完整知识图谱数据(用于可视化)
+        
+        Args:
+            user_id: 用户ID
+            limit: 最大节点数量限制(避免返回过多数据)
+            
+        Returns:
+            {
+                "nodes": [{"id", "label", "type", "properties"}],
+                "edges": [{"source", "target", "type", "properties"}],
+                "document_count": 文档数量,
+                "total_nodes": 实体总数,
+                "total_edges": 关系总数
+            }
+        """
+        if not self.available:
+            return {"nodes": [], "edges": [], "document_count": 0, "total_nodes": 0, "total_edges": 0}
+
+        try:
+            with self._driver.session(database=settings.neo4j_database) as session:
+                # 获取文档数量
+                doc_result = session.run(
+                    "MATCH (d:Document {user_id: $user_id}) RETURN count(d) AS count",
+                    user_id=user_id,
+                )
+                document_count = doc_result.single()["count"]
+                
+                # 获取所有实体节点(限制数量)
+                entities_query = """
+                MATCH (e:Entity {user_id: $user_id})
+                WITH e ORDER BY e.created_at DESC LIMIT $limit
+                RETURN e.id AS id, labels(e)[0] AS label, e.type AS type, 
+                       e.name AS name, e.description AS description,
+                       e.created_at AS created_at
+                """
+                entity_result = session.run(entities_query, user_id=user_id, limit=limit)
+                
+                nodes = []
+                entity_ids = set()
+                for record in entity_result:
+                    node = {
+                        "id": record["id"],
+                        "label": record["name"],
+                        "type": record.get("type", "Entity"),
+                        "description": record.get("description", "")
+                    }
+                    nodes.append(node)
+                    entity_ids.add(record["id"])
+                
+                # 获取这些实体之间的关系
+                relations_query = """
+                MATCH (e1:Entity {user_id: $user_id})-[r:RELATED_TO]->(e2:Entity {user_id: $user_id})
+                WHERE e1.id IN $entity_ids AND e2.id IN $entity_ids
+                RETURN e1.id AS source, e2.id AS target, r.type AS type,
+                       r.weight AS weight, r.created_at AS created_at
+                """
+                relation_result = session.run(
+                    relations_query, 
+                    user_id=user_id, 
+                    entity_ids=list(entity_ids)
+                )
+                
+                edges = []
+                for record in relation_result:
+                    edge = {
+                        "source": record["source"],
+                        "target": record["target"],
+                        "type": record.get("type", "RELATED_TO"),
+                        "weight": record.get("weight", 1.0)
+                    }
+                    edges.append(edge)
+                
+                return {
+                    "nodes": nodes,
+                    "edges": edges,
+                    "document_count": document_count,
+                    "total_nodes": len(nodes),
+                    "total_edges": len(edges)
+                }
+        except Exception as e:
+            logger.error(f"获取图谱数据失败: {e}")
+            return {"nodes": [], "edges": [], "document_count": 0, "total_nodes": 0, "total_edges": 0, "error": str(e)}
+    
+    def get_document_graph(self, user_id: str, limit: int = 100) -> Dict[str, Any]:
+        """获取文档图谱(文档节点和文档间关系)
+        
+        Args:
+            user_id: 用户ID
+            limit: 最大文档数量限制
+            
+        Returns:
+            {
+                "nodes": [{"id", "label", "type", "properties"}],
+                "edges": [{"source", "target", "type", "properties"}],
+                "total_nodes": 文档总数,
+                "total_edges": 关系总数
+            }
+        """
+        if not self.available:
+            return {"nodes": [], "edges": [], "total_nodes": 0, "total_edges": 0}
+
+        try:
+            with self._driver.session(database=settings.neo4j_database) as session:
+                # 获取所有文档节点
+                docs_query = """
+                MATCH (d:Document {user_id: $user_id})
+                WITH d ORDER BY d.created_at DESC LIMIT $limit
+                RETURN d.document_id AS id, d.title AS label, 'Document' AS type,
+                       d.created_at AS created_at
+                """
+                doc_result = session.run(docs_query, user_id=user_id, limit=limit)
+                
+                nodes = []
+                doc_ids = set()
+                for record in doc_result:
+                    # 处理可能的None值
+                    doc_id = record.get("id")
+                    if not doc_id:
+                        logger.warning(f"跳过没有id的文档记录: {record}")
+                        continue
+                    
+                    node = {
+                        "id": doc_id,
+                        "label": record.get("label") or f"文档{doc_id[:8]}",
+                        "type": "Document",
+                        "created_at": record.get("created_at")
+                    }
+                    nodes.append(node)
+                    doc_ids.add(doc_id)
+                
+                logger.info(f"找到 {len(nodes)} 个文档节点, IDs: {list(doc_ids)[:5]}...")
+                
+                # 如果没有文档，直接返回
+                if not doc_ids:
+                    return {
+                        "nodes": [],
+                        "edges": [],
+                        "total_nodes": 0,
+                        "total_edges": 0
+                    }
+                
+                # 获取文档之间的关系(通过共享实体)
+                relations_query = """
+                MATCH (d1:Document {user_id: $user_id})-[:CONTAINS_ENTITY]->(e:Entity)<-[:CONTAINS_ENTITY]-(d2:Document {user_id: $user_id})
+                WHERE d1.document_id IN $doc_ids AND d2.document_id IN $doc_ids AND d1.document_id < d2.document_id
+                WITH d1, d2, count(e) AS weight
+                RETURN d1.document_id AS source, d2.document_id AS target, 'SHARED_ENTITY' AS type, weight
+                """
+                relation_result = session.run(
+                    relations_query, 
+                    user_id=user_id, 
+                    doc_ids=list(doc_ids)
+                )
+                
+                edges = []
+                for record in relation_result:
+                    edge = {
+                        "source": record.get("source"),
+                        "target": record.get("target"),
+                        "type": record.get("type", "SHARED_ENTITY"),
+                        "weight": record.get("weight", 1.0)
+                    }
+                    edges.append(edge)
+                
+                logger.info(f"找到 {len(edges)} 条文档关系")
+                
+                return {
+                    "nodes": nodes,
+                    "edges": edges,
+                    "total_nodes": len(nodes),
+                    "total_edges": len(edges)
+                }
+        except Exception as e:
+            logger.error(f"获取文档图谱失败: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            return {"nodes": [], "edges": [], "total_nodes": 0, "total_edges": 0, "error": str(e)}
+    
+    def get_entity_graph(self, user_id: str, limit: int = 200) -> Dict[str, Any]:
+        """获取实体图谱(实体节点和实体间关系)
+        
+        Args:
+            user_id: 用户ID
+            limit: 最大实体数量限制
+            
+        Returns:
+            {
+                "nodes": [{"id", "label", "type", "properties"}],
+                "edges": [{"source", "target", "type", "properties"}],
+                "total_nodes": 实体总数,
+                "total_edges": 关系总数
+            }
+        """
+        if not self.available:
+            return {"nodes": [], "edges": [], "total_nodes": 0, "total_edges": 0}
+
+        try:
+            with self._driver.session(database=settings.neo4j_database) as session:
+                # 获取所有实体节点
+                entities_query = """
+                MATCH (e:Entity {user_id: $user_id})
+                WITH e ORDER BY e.created_at DESC LIMIT $limit
+                RETURN e.entity_id AS id, e.entity_name AS label, e.entity_type AS type,
+                       e.description AS description, e.created_at AS created_at
+                """
+                entity_result = session.run(entities_query, user_id=user_id, limit=limit)
+                
+                nodes = []
+                entity_ids = set()
+                for record in entity_result:
+                    # 处理可能的None值
+                    entity_id = record.get("id")
+                    if not entity_id:
+                        logger.warning(f"跳过没有id的实体记录: {record}")
+                        continue
+                    
+                    node = {
+                        "id": entity_id,
+                        "label": record.get("label") or f"实体{entity_id[:8]}",
+                        "type": record.get("type") or "Entity",
+                        "description": record.get("description", "")
+                    }
+                    nodes.append(node)
+                    entity_ids.add(entity_id)
+                
+                logger.info(f"找到 {len(nodes)} 个实体节点, IDs: {list(entity_ids)[:5]}...")
+                
+                # 如果没有实体，直接返回
+                if not entity_ids:
+                    return {
+                        "nodes": [],
+                        "edges": [],
+                        "total_nodes": 0,
+                        "total_edges": 0
+                    }
+                
+                # 获取实体之间的关系
+                relations_query = """
+                MATCH (e1:Entity {user_id: $user_id})-[r:RELATED_TO]->(e2:Entity {user_id: $user_id})
+                WHERE e1.entity_id IN $entity_ids AND e2.entity_id IN $entity_ids
+                RETURN e1.entity_id AS source, e2.entity_id AS target, r.type AS type,
+                       r.weight AS weight, r.created_at AS created_at
+                """
+                relation_result = session.run(
+                    relations_query, 
+                    user_id=user_id, 
+                    entity_ids=list(entity_ids)
+                )
+                
+                edges = []
+                for record in relation_result:
+                    edge = {
+                        "source": record.get("source"),
+                        "target": record.get("target"),
+                        "type": record.get("type", "RELATED_TO"),
+                        "weight": record.get("weight", 1.0)
+                    }
+                    edges.append(edge)
+                
+                logger.info(f"找到 {len(edges)} 条实体关系")
+                
+                return {
+                    "nodes": nodes,
+                    "edges": edges,
+                    "total_nodes": len(nodes),
+                    "total_edges": len(edges)
+                }
+        except Exception as e:
+            logger.error(f"获取实体图谱失败: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            return {"nodes": [], "edges": [], "total_nodes": 0, "total_edges": 0, "error": str(e)}
+
 
 # ─── 单例管理 ───────────────────────────────────────────────────
 

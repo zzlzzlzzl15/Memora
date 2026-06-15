@@ -53,7 +53,7 @@ services:
       - neo4j_data:/data
       - neo4j_logs:/logs
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:7474 || exit 1"]
+      test: ["CMD-SHELL", "timeout 5 bash -c 'echo > /dev/tcp/localhost/7474' || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -80,7 +80,7 @@ services:
     env_file:
       - .env.production
     ports:
-      - "127.0.0.1:8000:8080"
+      - "8000:8080"  # 直接暴露8000端口,无需Nginx
     volumes:
       - app_uploads:/app/uploads
       - app_logs:/app/logs
@@ -95,29 +95,30 @@ services:
       redis:
         condition: service_healthy
 
-  nginx:
-    image: nginx:alpine
-    container_name: memora-nginx
-    restart: always
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
-      - certbot_etc:/etc/letsencrypt
-      - certbot_var:/var/lib/letsencrypt
-      - certbot_www:/var/www/certbot
-    depends_on:
-      - app
+  # Nginx反向代理 - 开发环境可选,生产环境推荐
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: memora-nginx
+  #   restart: always
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx/conf.d:/etc/nginx/conf.d:ro
+  #     - certbot_etc:/etc/letsencrypt
+  #     - certbot_var:/var/lib/letsencrypt
+  #     - certbot_www:/var/www/certbot
+  #   depends_on:
+  #     - app
 
-  certbot:
-    image: certbot/certbot
-    container_name: memora-certbot
-    volumes:
-      - certbot_etc:/etc/letsencrypt
-      - certbot_var:/var/lib/letsencrypt
-      - certbot_www:/var/www/certbot
+  # Certbot SSL证书管理 - 仅生产环境需要
+  # certbot:
+  #   image: certbot/certbot
+  #   container_name: memora-certbot
+  #   volumes:
+  #     - certbot_etc:/etc/letsencrypt
+  #     - certbot_var:/var/lib/letsencrypt
+  #     - certbot_www:/var/www/certbot
 
 volumes:
   mysql_data:

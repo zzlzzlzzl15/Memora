@@ -49,7 +49,7 @@
     --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* General Body Styles - 白色背景 */
+/* General Body Styles */
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     background: var(--bg-primary);
@@ -62,19 +62,19 @@ body {
     color: var(--text-primary);
 }
 
-/* Authentication Container - 宇航员主题登录框 */
+/* Authentication Container */
 #auth-container {
     background: var(--bg-primary);
-    padding: 48px 48px 32px;
+    padding: 40px 48px 28px;
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-xl);
     width: 100%;
-    max-width: 440px;
+    max-width: 420px;
+    backdrop-filter: blur(10px);
     position: relative;
-    border: 2px solid var(--border-color);
 }
 
-/* 语言切换按钮 - 宇航员主题 */
+/* 语言切换按钮 */
 .language-toggle {
     position: fixed;
     top: 20px;
@@ -85,38 +85,34 @@ body {
 .lang-btn {
     padding: 8px 16px;
     font-size: 14px;
-    color: var(--text-primary);
-    background: var(--bg-primary);
-    border: 2px solid var(--border-color);
+    color: white;
+    background: transparent;
+    border: none;
     cursor: pointer;
     transition: var(--transition);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
 }
 
 .lang-btn:hover {
-    border-color: var(--primary-color);
-    box-shadow: var(--shadow-md);
+    opacity: 0.8;
 }
 
 .lang-option {
-    font-weight: 500;
+    font-weight: 400;
     transition: var(--transition);
-    color: var(--text-secondary);
+    color: white;
 }
 
 .lang-option.active {
     font-weight: 700;
-    color: var(--primary-color);
 }
 
 .lang-separator {
     margin: 0 4px;
     font-weight: 400;
-    color: var(--text-tertiary);
+    color: rgba(255, 255, 255, 0.6);
 }
 
-/* 下拉菜单内的语言项颜色覆盖 */
+/* 下拉菜单内的语言项颜色覆盖，避免白底看不见 */
 .user-dropdown .lang-option {
     color: var(--text-primary);
     font-weight: 400;
@@ -134,52 +130,50 @@ body {
     display: none;
 }
 
-/* 登录界面品牌标识 - 宇航员主题 */
+/* 登录界面品牌标识 */
 .auth-brand {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 14px;
-    margin-bottom: 40px;
-    padding-bottom: 24px;
-    border-bottom: 2px solid var(--border-light);
+    gap: 12px;
+    margin-bottom: 36px;
+    padding-bottom: 0;  /* 移除下边距 */
+    /* border-bottom: 2px solid var(--border-light); */  /* 移除分隔线 */
 }
 
 .auth-brand-logo {
-    width: 48px;
-    height: 48px;
+    width: 42px;
+    height: 42px;
     display: block;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
 }
 
 .auth-brand-title {
-    font-size: 32px;
-    font-weight: 800;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--cosmic-blue) 100%);
+    font-size: 28px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary-color) 0%, #764ba2 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    line-height: 48px;
-    letter-spacing: -0.5px;
+    line-height: 42px;
 }
 
-/* Beta星光标识 */
+/* Beta彩色标识 */
 .beta-badge {
     display: inline-flex;
     align-items: center;
-    padding: 4px 12px;
-    margin-left: 10px;
+    padding: 4px 10px;
+    margin-left: 8px;
     margin-bottom: 0px;
     font-size: 12px;
     font-weight: 700;
     color: #ffffff;
     -webkit-text-fill-color: #ffffff;
-    background: linear-gradient(135deg, var(--space-accent) 0%, var(--secondary-dark) 100%);
+    background: linear-gradient(135deg, var(--warning-color) 0%, var(--primary-color) 100%);
     border-radius: var(--radius-full);
     box-shadow: var(--shadow-sm);
-    letter-spacing: 0.8px;
+    letter-spacing: 0.5px;
     vertical-align: baseline;
 }
 
@@ -202,14 +196,13 @@ body {
     font-size: 15px;
     transition: var(--transition);
     background: var(--bg-secondary);
-    color: var(--text-primary);
 }
 
 #auth-container input:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
-    background: var(--bg-primary);
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.12);
+    background: white;
     transform: translateY(-1px);
 }
 
@@ -229,14 +222,14 @@ body {
     font-size: 16px;
     font-weight: 600;
     transition: var(--transition);
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 4px 10px rgba(102, 126, 234, 0.25);
     letter-spacing: 0.3px;
     min-height: 52px;
 }
 
 #auth-container button:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 6px 14px rgba(102, 126, 234, 0.35);
 }
 
 #auth-container button:active:not(:disabled) {
@@ -302,43 +295,43 @@ body {
 /* 验证码输入行样式 */
 .otp-row {
     display: flex;
-    align-items: flex-start;
+    align-items: flex-start; /* 顶部对齐 */
     margin-bottom: 16px;
-    flex-wrap: nowrap;
+    flex-wrap: nowrap; /* 强制不换行 */
     width: 100%;
 }
 
 .otp-row input {
-    flex: 618 0 0;
-    margin-bottom: 0;
+    flex: 618 0 0; /* 61.8% 宽度 */
+    margin-bottom: 0; /* 覆盖#auth-container input的margin-bottom */
     margin-right: 12px;
-    min-width: 0;
+    min-width: 0; /* 允许收缩 */
 }
 
 .otp-row button {
-    flex: 382 0 0;
+    flex: 382 0 0; /* 38.2% 宽度 */
     width: auto;
-    padding: 14px 16px;
+    padding: 14px 16px; /* 与输入框完全一致：上下14px、左右16px */
     white-space: nowrap;
-    font-size: 15px;
-    line-height: normal;
+    font-size: 15px; /* 与输入框一致 */
+    line-height: normal; /* 与输入框保持一致 */
     font-weight: 600;
     background: linear-gradient(135deg, var(--secondary-color) 0%, var(--secondary-dark) 100%);
-    border: 2px solid transparent;
+    border: 2px solid transparent; /* 与输入框相同的border宽度，但透明 */
     border-radius: var(--radius-md);
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
     transition: var(--transition);
     min-width: 0;
-    box-sizing: border-box;
+    box-sizing: border-box; /* 与输入框一致 */
     color: white;
     cursor: pointer;
     margin-bottom: 0;
-    height: 48.8px;
+    height: 48.8px; /* 固定高度 */
 }
 
 .otp-row button:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
     filter: brightness(1.05);
 }
 
@@ -365,9 +358,9 @@ body {
 }
 
 #register-form input:focus {
-    background: var(--bg-primary);
+    background: white;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.12);
     transform: translateY(-1px);
 }
 
@@ -376,7 +369,7 @@ body {
 }
 
 #register-form .otp-row input:focus {
-    background: var(--bg-primary);
+    background: white;
 }
 
 /* 表单标题样式 */
@@ -389,7 +382,7 @@ body {
     margin: 0 0 8px 0;
     font-size: 26px;
     font-weight: 700;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--cosmic-blue) 100%);
+    background: linear-gradient(135deg, var(--primary-color) 0%, #764ba2 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -418,12 +411,12 @@ body {
     font-size: 16px;
     font-weight: 700;
     letter-spacing: 0.5px;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--cosmic-blue) 100%);
-    box-shadow: var(--shadow-lg);
+    background: linear-gradient(135deg, var(--primary-color) 0%, #764ba2 100%);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 #register-btn:hover {
-    box-shadow: var(--shadow-xl);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
     transform: translateY(-3px);
 }
 
@@ -442,12 +435,12 @@ body {
     }
 }
 
-/* Main Application Container - 白色背景 */
+/* Main Application Container */
 #main-container {
     width: 100vw;
     max-width: none;
     height: 100vh;
-    background: var(--bg-primary);
+    background: var(--bg-secondary);
     border-radius: 0;
     box-shadow: none;
     display: flex;
@@ -460,19 +453,18 @@ body {
     align-items: center;
     padding: 20px 32px;
     background: var(--bg-primary);
-    border-bottom: 2px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
     box-shadow: var(--shadow-sm);
 }
 
 #header h1 { 
     margin: 0; 
     font-size: 32px;
-    font-weight: 800;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--cosmic-blue) 100%);
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary-color) 0%, #764ba2 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    letter-spacing: -0.5px;
 }
 
 .brand { 
@@ -485,9 +477,8 @@ body {
     width: 48px; 
     height: 48px; 
     display: block;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
 }
 
 .brand-title { 
@@ -505,7 +496,7 @@ body {
     gap: 16px;
 }
 
-/* 用户头像与设置下拉 - 宇航员主题 */
+/* 用户头像与设置下拉 */
 .user-avatar-container {
     position: relative;
 }
@@ -514,7 +505,7 @@ body {
     width: 36px;
     height: 36px;
     border-radius: var(--radius-full);
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--cosmic-blue) 100%);
+    background: linear-gradient(135deg, var(--primary-color) 0%, #764ba2 100%);
     color: white;
     display: flex;
     align-items: center;
@@ -522,10 +513,9 @@ body {
     font-weight: 700;
     font-size: 14px;
     cursor: pointer;
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-sm);
     overflow: hidden;
     position: relative;
-    border: 2px solid var(--border-color);
 }
 
 .user-avatar img {
@@ -541,13 +531,13 @@ body {
 
 .user-dropdown {
     position: absolute;
-    top: 44px;
+    top: 40px;
     right: 0;
     width: 240px;
     background: var(--bg-primary);
-    border: 2px solid var(--border-color);
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    box-shadow: var(--shadow-xl);
+    box-shadow: var(--shadow-lg);
     padding: 8px;
     z-index: 1000;
 }
@@ -610,10 +600,10 @@ body {
     flex: 1;
     overflow: hidden;
     overflow-x: auto;
-    background: var(--bg-primary);
+    background: var(--bg-secondary);
 }
 
-/* 使用统计弹窗与贡献图 - 宇航员主题 */
+/* 使用统计弹窗与贡献图 */
 .stats-controls {
     display: flex;
     align-items: center;
@@ -649,7 +639,7 @@ body {
     gap: 16px;
 }
 
-/* 右侧区域 - 占据剩余空间 */
+/* 右侧区域 - 占据剩余空间，与左侧等高 */
 .stats-right {
     flex: 0 0 600px;
     width: 600px;
@@ -665,10 +655,10 @@ body {
     flex-direction: column;
     gap: 12px;
     padding: 20px;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--cosmic-blue) 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-radius: var(--radius-lg);
     border: none;
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
     position: relative;
     overflow: hidden;
 }
@@ -705,7 +695,7 @@ body {
     color: #1e293b;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
     letter-spacing: 0.5px;
     position: relative;
     z-index: 1;
@@ -713,17 +703,18 @@ body {
 
 .stats-controls input[type="month"]:hover {
     background: #ffffff;
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
     transform: translateY(-2px);
 }
 
 .stats-controls input[type="month"]:focus {
     outline: none;
     background: #ffffff;
-    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.4), var(--shadow-lg);
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.4), 0 6px 16px rgba(0, 0, 0, 0.2);
     transform: translateY(-2px);
 }
 
+/* 月份选择器的日历图标 */
 .stats-controls input[type="month"]::-webkit-calendar-picker-indicator {
     cursor: pointer;
     opacity: 0.6;
@@ -772,7 +763,7 @@ body {
 .stats-summary-value {
     font-size: 28px;
     font-weight: 700;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--cosmic-blue) 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -780,7 +771,7 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-/* 热力图容器 */
+/* 热力图容器 - 占满右侧高度 */
 .stats-grid-container {
     flex: 1;
     height: 100%;
@@ -818,7 +809,7 @@ body {
     justify-content: center;
 }
 
-/* 热力图 - 固定76px方块 */
+/* 热力图 - 固定76px方块，内容居中 */
 .stats-grid {
     width: fit-content;
     display: grid;
@@ -831,7 +822,7 @@ body {
     justify-items: center;
 }
 
-.stats-cell {
+ .stats-cell {
     aspect-ratio: 1;
     width: 76px;
     height: 76px;
@@ -846,55 +837,55 @@ body {
 .stats-cell:hover {
     transform: scale(1.15);
     z-index: 10;
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
     border-color: var(--primary-color);
 }
 
-/* 活跃等级颜色 - 宇航员主题 */
+/* 活跃等级颜色 - 适配项目主题色 */
 .stats-cell.level-0 { 
-    background: #e2e8f0;
+    background: #ebedf0;
 }
 
 .stats-cell.level-1 { 
-    background: #bfdbfe;
+    background: #c7d2fe;
 }
 
 .stats-cell.level-2 { 
-    background: #93c5fd;
+    background: #a5b4fc;
 }
 
 .stats-cell.level-3 { 
-    background: #60a5fa;
+    background: #818cf8;
 }
 
 .stats-cell.level-4 { 
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--cosmic-blue) 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 /* 暗色模式适配 */
 @media (prefers-color-scheme: dark) {
     .stats-cell.level-0 { 
-        background: #1e293b;
+        background: #161b22;
     }
     
     .stats-cell.level-1 { 
-        background: #1e3a8a;
+        background: #0e4429;
     }
     
     .stats-cell.level-2 { 
-        background: #1e40af;
+        background: #006d32;
     }
     
     .stats-cell.level-3 { 
-        background: #2563eb;
+        background: #26a641;
     }
     
     .stats-cell.level-4 { 
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--cosmic-blue) 100%);
+        background: #39d353;
     }
 }
 
-/* 图例 */
+/* 图例 - 固定在底部 */
 .stats-legend {
     display: flex;
     align-items: center;
@@ -943,7 +934,7 @@ body {
     position: fixed;
     padding: 10px 14px;
     font-size: 13px;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--cosmic-blue) 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-lg);
@@ -960,7 +951,7 @@ body {
     left: 12px;
     width: 8px;
     height: 8px;
-    background: var(--primary-color);
+    background: #667eea;
     transform: rotate(45deg);
 }
 
@@ -1050,7 +1041,7 @@ body {
 #profile-form input:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
 #profile-form .modal-actions {
@@ -1060,7 +1051,7 @@ body {
     margin-top: 8px;
 }
 
-/* 信息显示行 */
+/* 信息显示行（只读+按钮） */
 .info-display-row {
     display: flex;
     gap: 12px;
@@ -1077,6 +1068,7 @@ body {
     flex-shrink: 0;
 }
 
+
 .secondary-action {
     padding: 10px 20px;
     background: var(--bg-secondary);
@@ -1091,7 +1083,7 @@ body {
 
 .secondary-action:hover {
     background: var(--bg-tertiary);
-    border-color: var(--border-color);
+    border-color: var(--border-dark);
 }
 
 .secondary-action:disabled {
@@ -1099,35 +1091,36 @@ body {
     cursor: not-allowed;
 }
 
-/* Document Management - 1:1:1 等比例布局 */
+/* Document Management - 1:1:1 等比例布局，自适应高度 */
 #document-management {
-    flex: 1 1 0;
+    flex: 1 1 0;  /* 等比例伸缩，占据1份空间 */
     display: flex;
     flex-direction: column;
     min-width: 0;
-    min-height: 0;
+    min-height: 0;  /* 允许高度自适应 */
     background: var(--bg-primary);
     border-radius: var(--radius-lg);
     padding: 24px;
     box-shadow: var(--shadow-md);
     position: relative;
     overflow: hidden;
-    border: 2px solid var(--border-color);
 }
 
+/* 顶部标题栏 */
 #document-management > div:first-child {
     margin-bottom: 20px;
     padding-bottom: 16px;
     border-bottom: 2px solid var(--border-light);
 }
 
+/* 文档内容包装器：用于包含文档列表和预览面板 - 自适应高度 */
 .document-content-wrapper {
-    flex: 1 1 0;
-    min-height: 0;
+    flex: 1 1 0;  /* 自适应伸缩，填充剩余空间 */
+    min-height: 0;  /* 允许高度自适应 */
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    margin-bottom: 20px;
+    margin-bottom: 20px;  /* 固定20px间距 */
 }
 
 #document-management h2 {
@@ -1138,22 +1131,22 @@ body {
     letter-spacing: -0.5px;
 }
 
-/* 回收站面板 */
+/* 回收站面板 - 1:1:1 等比例布局，自适应高度 */
 #trash-management {
-    flex: 1 1 0;
+    flex: 1 1 0;  /* 等比例伸缩，占据1份空间 */
     min-width: 0;
-    min-height: 0;
+    min-height: 0;  /* 允许高度自适应 */
     display: none;
     flex-direction: column;
     background: var(--bg-primary);
     border-radius: var(--radius-lg);
     padding: 24px;
     box-shadow: var(--shadow-md);
-    position: relative;
-    overflow: hidden;
-    border: 2px solid var(--border-color);
+    position: relative;  /* 与#document-management保持一致 */
+    overflow: hidden;  /* 与#document-management保持一致 */
 }
 
+/* 回收站顶部标题栏 */
 #trash-management > div:first-child {
     margin-bottom: 20px;
     padding-bottom: 16px;
@@ -1169,9 +1162,9 @@ body {
 }
 
 #document-list {
-    display: block !important;
+    display: block !important;  /* 强制优先级，防止内联样式干扰 */
     margin-bottom: 0;
-    height: 100%;
+    height: 100%;  /* 填充父容器固定高度 */
     overflow-y: auto;
     border: 2px solid var(--border-light);
     border-radius: var(--radius-lg);
@@ -1194,7 +1187,7 @@ body {
 }
 
 .document-item:hover {
-    background: linear-gradient(135deg, rgba(37, 99, 235, 0.06) 0%, rgba(30, 64, 175, 0.06) 100%);
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
     border-color: var(--primary-color);
     transform: translateX(4px);
     box-shadow: var(--shadow-sm);
@@ -1211,7 +1204,7 @@ body {
     letter-spacing: -0.2px;
 }
 
-/* 垃圾桶图标 */
+/* 垃圾桶图标：优雅的图标按钮风格 */
 .delete-icon {
     margin-left: 12px;
     cursor: pointer;
@@ -1229,8 +1222,9 @@ body {
     position: relative;
 }
 
+/* 使用更优雅的删除图标 */
 .delete-icon::before {
-    content: '\1F5D1';
+    content: '\1F5D1';  /* 🗑 废纸篓图标 */
     font-size: 16px;
 }
 
@@ -1243,36 +1237,38 @@ body {
 }
 
 #upload-form {
-    display: block !important;
-    flex: 0 0 auto;
+    display: block !important;  /* 强制优先级，防止内联样式干扰 */
+    flex: 0 0 auto;  /* 不伸缩，保持内容高度 */
     padding: 20px 0 0 0;
-    margin-top: 0;
+    margin-top: 0;  /* 固定0，紧贴上方 */
     border-top: 2px solid var(--border-light);
     background: var(--bg-primary);
     box-shadow: none;
 }
 
+/* 回收站占位区域：与上传表单保持完全相同的样式和空间 */
 .trash-placeholder {
-    flex: 0 0 auto;
+    flex: 0 0 auto;  /* 不伸缩，保持内容高度 */
     padding: 20px 0 0 0;
-    margin-top: 0;
-    margin-bottom: 0;
+    margin-top: 0;  /* 固定0，紧贴上方 */
+    margin-bottom: 0;  /* 固定0 */
     border-top: 2px solid var(--border-light);
     background: var(--bg-primary);
     box-shadow: none;
-    visibility: hidden;
+    visibility: hidden;  /* 不显示内容，但占用空间 */
 }
 
 #upload-form h3 {
     margin: 0 0 16px 0;
     color: var(--text-primary);
-    font-size: 20px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
+    font-size: 20px;  /* 与Documents标题相同大小 */
+    font-weight: 700;  /* 与Documents标题相同粗细 */
+    letter-spacing: -0.5px;  /* 与Documents标题相同字间距 */
     padding-bottom: 16px;
-    border-bottom: 2px solid var(--border-light);
+    border-bottom: 2px solid var(--border-light);  /* 添加底部分隔线，与Documents一致 */
 }
 
+/* 选择文件按钮：简洁样式 */
 #upload-form input[type="file"] {
     width: 100%;
     padding: 12px 14px;
@@ -1290,7 +1286,7 @@ body {
 #upload-form input[type="file"]:hover {
     border-color: var(--primary-color);
     background: var(--bg-primary);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.08);
 }
 
 #upload-form input[type="text"] {
@@ -1308,9 +1304,10 @@ body {
 #upload-form input:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
+/* 上传按钮：保持绿色渐变风格 */
 #upload-btn {
     width: 100%;
     padding: 12px 18px;
@@ -1334,7 +1331,7 @@ body {
     transform: translateY(0);
 }
 
-/* 文档预览面板 */
+/* 左栏内文档预览面板：与列表互斥显示 */
 #document-viewer { 
     display: none; 
     flex: 1 1 0;
@@ -1342,6 +1339,7 @@ body {
     overflow: hidden;
 }
 
+/* 当文档查看器显示时，隐藏文档列表 */
 #document-viewer[style*="display: block"] ~ #document-list,
 #document-viewer[style*="display:block"] ~ #document-list {
     display: none !important;
@@ -1376,6 +1374,7 @@ body {
     color: var(--text-primary);
 }
 
+/* 文档预览返回按钮：中性风格 */
 #back-to-docs-btn {
     padding: 10px 20px;
     background: var(--bg-primary);
@@ -1406,6 +1405,7 @@ body {
     transform: translateY(0);
 }
 
+/* 回收站按钮：使用中性色调，不过于突出 */
 #open-trash-btn {
     padding: 10px 20px;
     background: var(--bg-primary);
@@ -1436,6 +1436,7 @@ body {
     transform: translateY(0);
 }
 
+/* 返回文档按钮：使用中性风格 */
 #back-to-docs-from-trash-btn {
     padding: 10px 20px;
     background: var(--bg-primary);
@@ -1466,6 +1467,7 @@ body {
     transform: translateY(0);
 }
 
+/* 已删除文档项样式 */
 .deleted-document-item {
     display: flex;
     align-items: center;
@@ -1479,17 +1481,19 @@ body {
 }
 
 .deleted-document-item:hover {
-    background: linear-gradient(135deg, rgba(37, 99, 235, 0.04) 0%, rgba(30, 64, 175, 0.04) 100%);
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
     border-color: var(--primary-color);
     box-shadow: var(--shadow-sm);
 }
 
+/* 已删除文档操作按钮组 */
 .deleted-actions {
     display: flex;
     gap: 8px;
     align-items: center;
 }
 
+/* 恢复按钮：使用绿色系，表示恢复操作 */
 .restore-btn {
     padding: 8px 16px;
     background: var(--bg-primary);
@@ -1519,6 +1523,7 @@ body {
     transform: translateY(0);
 }
 
+/* 彻底删除按钮：红色边框样式，不过于激进 */
 .purge-btn {
     padding: 8px 16px;
     background: var(--bg-primary);
@@ -1548,8 +1553,9 @@ body {
     transform: translateY(0);
 }
 
+/* 已删除列表样式 - 与文档列表保持相同的固定高度 */
 #deleted-document-list {
-    height: 100%;
+    height: 100%;  /* 填充父容器固定高度 */
     margin-top: 0;
     margin-bottom: 0;
     padding: 12px;
@@ -1579,7 +1585,7 @@ body {
     word-wrap: break-word;
 }
 
-/* Chat Container - 宇航员主题 */
+/* Chat Container */
 #chat-container {
     flex: 1 1 0;
     min-width: 0;
@@ -1589,8 +1595,7 @@ body {
     border-radius: var(--radius-lg);
     padding: 20px;
     box-shadow: var(--shadow-md);
-    position: relative;
-    border: 2px solid var(--border-color);
+    position: relative;  /* 为历史按钮提供定位上下文 */
 }
 
 #chat-window {
@@ -1683,7 +1688,7 @@ body {
 #chat-message:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 #chat-message::placeholder {
@@ -1800,7 +1805,7 @@ body {
     font-style: italic;
 }
 
-/* ===== Studio面板与模式标签 - 宇航员主题 ===== */
+/* ===== Studio面板与模式标签 ===== */
 .primary-action {
     padding: 10px 16px;
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
@@ -1833,7 +1838,7 @@ body {
     gap: 16px;
 }
 
-/* 模式单选框样式 */
+/* 模式单选框样式（知识查询/知识梳理） */
 .mode-tabs { 
     display: flex; 
     align-items: center; 
@@ -1862,7 +1867,7 @@ body {
 
 .mode-tab:focus-visible { 
     outline: none; 
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
 }
 
 .mode-tab.active {
@@ -1870,7 +1875,7 @@ body {
     border-color: var(--primary-dark);
     color: #ffffff;
     box-shadow: 
-        0 0 0 3px rgba(37, 99, 235, 0.2),
+        0 0 0 3px rgba(102, 126, 234, 0.2),
         var(--shadow-md);
 }
 
@@ -1888,7 +1893,6 @@ body {
     border-radius: var(--radius-lg);
     padding: 20px;
     box-shadow: var(--shadow-md);
-    border: 2px solid var(--border-color);
 }
 
 .studio-header { 
@@ -1940,11 +1944,11 @@ body {
     line-height: 1.5;
 }
 
-/* 模态框样式 - 宇航员主题 */
+/* 模态框样式 */
 .modal-overlay { 
     position: fixed; 
     inset: 0; 
-    background: rgba(15, 23, 42, 0.5);
+    background: rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(4px);
     display: flex; 
     align-items: center; 
@@ -1966,7 +1970,6 @@ body {
     box-shadow: var(--shadow-xl);
     overflow: hidden;
     animation: scaleIn 0.2s ease-out;
-    border: 2px solid var(--border-color);
 }
 
 @keyframes scaleIn {
@@ -2064,7 +2067,7 @@ body {
 .modal-body input:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .modal-actions { 
@@ -2139,8 +2142,9 @@ body {
     margin-bottom: 18px;
 }
 
-/* 历史会话边栏切换按钮与侧边栏 - 宇航员主题 */
+/* 历史会话边栏切换按钮与侧边栏 */
 .history-toggle {
+    /* 不使用绝对定位，让它自然融入标签页组 */
     width: auto;
     min-width: 44px;
     height: 44px;
@@ -2157,7 +2161,7 @@ body {
     font-weight: 600;
     transition: var(--transition);
     box-shadow: var(--shadow-sm);
-    margin-left: 12px;
+    margin-left: 12px;  /* 与"知识梳理"按钮的间距 */
 }
 
 .history-toggle:hover {
@@ -2199,7 +2203,7 @@ body {
     height: 100vh;
     overflow-y: auto;
     background: var(--bg-primary);
-    border-right: 2px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
     box-shadow: var(--shadow-xl);
     padding: 0;
     display: none;
@@ -2209,7 +2213,7 @@ body {
 .history-panel-header {
     position: sticky;
     top: 0;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--cosmic-blue) 100%);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
     color: #fff;
     padding: 20px;
     display: flex;
@@ -2280,20 +2284,21 @@ body {
 }
 
 .history-mode-tab.active {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--cosmic-blue) 100%);
-    border-color: var(--cosmic-blue);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    border-color: var(--primary-dark);
     color: #ffffff;
     box-shadow: var(--shadow-sm);
 }
 
 .history-sessions-container {
+    /* 会话列表容器 */
 }
 
 .new-chat-btn {
     margin: 0 12px 16px;
     width: calc(100% - 24px);
     padding: 12px 18px;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--cosmic-blue) 100%);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
     color: #fff;
     border: none;
     border-radius: var(--radius-md);
@@ -2336,8 +2341,9 @@ body {
     box-shadow: var(--shadow-sm);
 }
 
+/* 选中的历史会话（点击后） */
 .history-panel .history-item.selected {
-    background: linear-gradient(135deg, rgba(37, 99, 235, 0.08) 0%, rgba(30, 64, 175, 0.08) 100%);
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
     border-color: var(--primary-color);
     border-width: 2px;
     box-shadow: var(--shadow-md);
@@ -2355,7 +2361,7 @@ body {
 }
 
 .history-panel .history-item .role .badge {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--cosmic-blue) 100%);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
     color: #fff;
     padding: 3px 10px;
     border-radius: var(--radius-full);
@@ -2391,7 +2397,7 @@ body {
     font-style: italic;
 }
 
-/* ===== 修改邮箱弹窗美化样式 - 宇航员主题 ===== */
+/* ===== 修改邮箱弹窗美化样式 ===== */
 .email-change-modal {
     max-width: 500px;
 }
@@ -2406,8 +2412,8 @@ body {
 }
 
 .email-info-box {
-    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-    border: 2px solid #bfdbfe;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border: 2px solid #bae6fd;
     border-radius: var(--radius-md);
     padding: 18px 22px;
     margin-bottom: 28px;
@@ -2430,7 +2436,7 @@ body {
 }
 
 .email-tip {
-    background: #fef3c7;
+    background: #fffbeb;
     border-left: 4px solid var(--warning-color);
     border-radius: var(--radius-sm);
     padding: 14px 18px;
@@ -2463,6 +2469,7 @@ body {
     margin-top: 0;
 }
 
+/* 统一所有输入框样式 */
 .email-change-modal input[type="email"],
 .email-change-modal input[type="text"],
 .email-change-modal input[type="password"] {
@@ -2487,6 +2494,7 @@ body {
     background: var(--bg-primary);
 }
 
+/* 验证码行样式优化 */
 .email-change-modal .otp-row {
     display: flex;
     gap: 12px;
@@ -2500,13 +2508,13 @@ body {
     height: 46px;
 }
 
-/* 发送验证码按钮 - 深空蓝渐变 */
+/* 发送验证码按钮 - 蓝色渐变 */
 .email-change-modal .otp-row button {
     flex: 0 0 auto;
     min-width: 130px;
     height: 46px;
     padding: 0 20px;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--cosmic-blue) 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border: none;
     border-radius: var(--radius-md);
     color: white;
@@ -2515,12 +2523,12 @@ body {
     cursor: pointer;
     transition: all 0.3s ease;
     white-space: nowrap;
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
 .email-change-modal .otp-row button:hover {
-    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--cosmic-blue) 100%);
-    box-shadow: var(--shadow-lg);
+    background: linear-gradient(135deg, #5a67d8 0%, #6b42a0 100%);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
     transform: translateY(-1px);
 }
 
@@ -2529,7 +2537,7 @@ body {
 }
 
 .email-change-modal .otp-row button:disabled {
-    background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+    background: linear-gradient(135deg, #a0aec0 0%, #718096 100%);
     cursor: not-allowed;
     box-shadow: none;
     transform: none;
@@ -2549,7 +2557,7 @@ body {
     font-size: 15px;
 }
 
-/* ===== 知识图谱可视化区域 - 宇航员主题 ===== */
+/* ===== 知识图谱可视化区域 (类似 Obsidian) ===== */
 #kg-view-container {
     display: flex;
     flex-direction: column;
@@ -2559,7 +2567,6 @@ body {
     border-radius: var(--radius-md);
     overflow: hidden;
     box-shadow: var(--shadow-sm);
-    border: 2px solid var(--border-color);
 }
 
 .kg-header-bar {
@@ -2567,7 +2574,7 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 12px 16px;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--cosmic-blue) 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
 }
 
@@ -2575,7 +2582,7 @@ body {
     display: flex;
     gap: 8px;
     padding: 12px 16px;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--cosmic-blue) 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-radius: var(--radius-md) var(--radius-md) 0 0;
 }
 
@@ -2599,8 +2606,8 @@ body {
 
 .kg-tab.active {
     background: rgba(255, 255, 255, 0.95);
-    color: var(--primary-color);
-    box-shadow: var(--shadow-md);
+    color: #667eea;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .kg-header-bar h3 {
@@ -2629,7 +2636,7 @@ body {
 #kg-canvas-container {
     flex: 1;
     position: relative;
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
     overflow: hidden;
 }
 
@@ -2654,15 +2661,15 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.9);
     backdrop-filter: blur(5px);
 }
 
 .loading-spinner {
     width: 60px;
     height: 60px;
-    border: 5px solid rgba(37, 99, 235, 0.2);
-    border-top-color: var(--primary-color);
+    border: 5px solid rgba(102, 126, 234, 0.2);
+    border-top-color: #667eea;
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin-bottom: 20px;
@@ -2673,7 +2680,7 @@ body {
 }
 
 #kg-loading-overlay p {
-    color: var(--primary-color);
+    color: #667eea;
     font-size: 16px;
     font-weight: 500;
     margin: 0;
@@ -2683,7 +2690,7 @@ body {
     display: flex;
     gap: 20px;
     padding: 12px 20px;
-    background: var(--bg-primary);
+    background: white;
     border-top: 1px solid var(--border-color);
     box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
     align-items: center;
@@ -2700,14 +2707,14 @@ body {
     align-items: center;
     gap: 8px;
     padding: 6px 12px;
-    background: var(--bg-secondary);
+    background: #f8f9fa;
     border-radius: 20px;
     font-size: 13px;
     transition: all 0.2s ease;
 }
 
 .stat-item:hover {
-    background: var(--bg-tertiary);
+    background: #e9ecef;
     transform: translateY(-1px);
 }
 
@@ -2716,12 +2723,12 @@ body {
 }
 
 .stat-label {
-    color: var(--text-secondary);
+    color: #6c757d;
     font-weight: 500;
 }
 
 .stat-value {
-    color: var(--primary-color);
+    color: #667eea;
     font-weight: 700;
     font-size: 15px;
     min-width: 24px;
@@ -2740,7 +2747,7 @@ body {
 }
 
 .icon-btn:hover {
-    background: rgba(37, 99, 235, 0.1);
+    background: rgba(102, 126, 234, 0.1);
     opacity: 1;
     transform: rotate(180deg);
 }

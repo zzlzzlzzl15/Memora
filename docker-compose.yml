@@ -82,6 +82,7 @@ services:
     ports:
       - "8000:8080"  # 直接暴露8000端口,无需Nginx
     volumes:
+      - ./static:/app/static  # 挂载静态文件,开发时修改立即生效
       - app_uploads:/app/uploads
       - app_logs:/app/logs
       - hf_cache:/app/huggingface_cache

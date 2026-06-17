@@ -1,13 +1,16 @@
 ---
 name: memora-knowledge-graph
 description: >
-  Memora Knowledge Graph — Interactive knowledge graph visualization for your personal knowledge base.
-  Features document-entity relationship mapping with force-directed layout, zoom/pan/drag interactions,
-  and Obsidian-style visual design (black nodes, white background, subtle connections).
-  Use when: user wants to visualize relationships between documents and entities, explore knowledge structure,
-  or understand how information is connected in their knowledge base.
+  Memora — Personal AI Knowledge Base with interactive knowledge graph visualization.
+  A self-hosted system for managing, retrieving, and querying your personal knowledge assets
+  using vector search, hybrid retrieval, and LLM-driven intelligent Q&A.
+  Features document upload/processing, semantic search, AI chat sessions, web scraping,
+  and Obsidian-style knowledge graph visualization with force-directed layout.
+  Use when: user wants to build a personal knowledge base, manage documents, perform semantic search,
+  have AI-powered conversations about their knowledge, visualize document/entity relationships,
+  or integrate knowledge management into their OpenClaw workflow.
 metadata:
-  version: 2.0.3
+  version: 2.0.4
   author: zzlzzlzzl15
   license: MIT
   openclaw:
@@ -16,81 +19,107 @@ metadata:
         - KB_API_BASE
 ---
 
-# Memora Knowledge Graph Visualization
+# Memora - Personal AI Knowledge Base
 
-Interactive knowledge graph visualization component for Memora personal knowledge base. Provides a visual representation of document-entity relationships with modern interaction patterns.
+**Memora** is a self-hosted personal AI knowledge base system that provides an integrated experience from knowledge capture to intelligent Q&A. Built on vector retrieval, hybrid search, and LLM-driven intelligent organization, it helps you efficiently manage, retrieve, and utilize your personal knowledge assets.
 
 ## Version History
 
-### v2.0.0 (Current)
--  **New Feature**: Preview + Fullscreen Modal architecture
-- 🎨 **UI Redesign**: Compact preview cards with click-to-expand fullscreen view
-- 🖱️ **Enhanced Interaction**: Zoom (mouse wheel), pan (drag blank area), node drag, hover details
-- 🎯 **Centered Layout**: Force-directed algorithm centers all nodes at origin
--  **Obsidian Style**: Black nodes, white background, subtle gray connections
+### v2.0.4 (Current)
+- 📝 **Complete Product Documentation**: Comprehensive README with full product overview
+- 🎨 **Knowledge Graph v2.0**: Preview + Fullscreen Modal architecture
+- 🖱️ **Enhanced Interactions**: Zoom, pan, drag, hover details
+- 🎯 **Centered Layout**: Force-directed algorithm with origin-centered positioning
 - 🔄 **Smart Caching**: Preview data cached, modal uses larger dataset
-- 📊 **Dual Views**: Separate document graph and entity graph views
+-  **Dual Views**: Document graph + Entity graph
 
-### v1.0.0
-- Initial release with basic knowledge graph visualization
+### v2.0.0
+- Initial release with knowledge graph visualization
+- Force-directed layout with interactive controls
+- Obsidian-inspired visual design
 
-## Features
+## Core Features
 
-### Preview Cards
-- **Compact Display**: Two small preview cards (200px height) showing document and entity graphs
-- **Non-interactive**: Preview mode is read-only, encourages click to expand
-- **Hover Hint**: "Click to view full size" overlay appears on hover
-- **Node Count Badge**: Shows total nodes in each graph
+### 🔐 Privacy & Local Deployment
+- **Fully Private**: Data stored locally, no third-party uploads
+- **Offline Ready**: Works without internet connection
+- **Single User Mode**: No authentication required, ready to use out of the box
 
-### Fullscreen Modal
-- **Large Canvas**: 90vw × 85vh interactive visualization space
-- **Zoom Control**: Mouse wheel zoom centered on cursor position (scale 0.1x - 5x)
-- **Pan/Drag**: Click and drag blank areas to move the entire graph
-- **Node Drag**: Click and drag individual nodes to reposition
-- **Hover Details**: Node labels appear on hover with glow effect
-- **Refresh Button**: Reload current graph with latest data
-- **Keyboard Support**: Press ESC to close modal
+###  Intelligent Semantic Retrieval
+- **Hybrid Search**: Dense vectors + BM42 sparse vectors dual-engine retrieval
+- **Relevance Reranking**: Optional Rerank model for secondary sorting
+- **Fallback Mechanism**: Automatic fallback to backup strategies
+- **Semantic Understanding**: Vector similarity-based, not keyword matching
 
-### Visual Design
-- **Color Scheme**: 
-  - Background: White (#ffffff)
-  - Nodes: Black (#000000) with gray border
-  - Edges: Semi-transparent black lines (opacity based on weight)
-- **Node Size**: Base radius 4px, scaled by label length (max 6px)
-- **Glow Effect**: Multi-layer radial gradient on hover (Obsidian-inspired)
-- **Labels**: White background pill with black text, positioned below nodes
+### 📄 Multi-Format Document Processing
+- **Supported Formats**: PDF, Word (.docx/.doc), Plain Text (.txt), Markdown (.md)
+- **Smart Chunking**: LangChain recursive character splitter with Chinese/English support
+- **Vector Storage**: Dense + sparse vectors stored in Qdrant
+- **Metadata Management**: Tags and custom metadata for organization
 
-### Layout Algorithm
-- **Force-Directed**: Simulates physical forces between nodes
-  - Repulsion: All nodes repel each other (prevents overlap)
-  - Attraction: Connected nodes attract (spring-like edges)
-  - Center Force: Pulls nodes toward center (prevents drift)
-- **Initialization**: Circular distribution for even starting positions
-- **Boundary Constraints**: Keeps nodes within visible canvas area
-- **Damping**: Gradually reduces velocity for stable convergence
+###  AI-Powered Q&A
+- **Two Interaction Modes**:
+  - **Knowledge Query**: Precise Q&A based on retrieved results
+  - **Knowledge Organization**: LLM automatically organizes and summarizes knowledge
+- **Streaming Output**: Real-time content generation
+- **Session Management**: Multi-turn conversations with history
+- **Source Attribution**: Answers include source document links
 
-## Installation
+### 🕸️ Knowledge Graph Visualization
+- **Force-Directed Layout**: Automatic node positioning forming natural network structure
+- **Dual View Display**: Document relationship graph + Entity relationship graph
+- **Interactive Operations**:
+  - Mouse wheel zoom (centered on cursor)
+  - Drag blank area to pan canvas
+  - Drag nodes to reposition
+  - Hover to show details
+- **Obsidian Style Design**: Black nodes, white background, subtle connections
 
-### Option 1: Clone from clawhub
+### 🌐 Web Scraping & Integration
+- **Built-in Crawler**: httpx + BeautifulSoup, no external dependencies
+- **OpenClaw Integration**: Available as AI Agent Skill with zero-dependency client
+- **RESTful API**: Easy integration with other systems
+
+## Quick Start
+
+### Installation via clawhub
+
 ```bash
-git clone https://github.com/zzlzzlzzl15/memora-knowledge-graph.git
-cd memora-knowledge-graph
+openclaw skills install memora-knowledge-graph@2.0.4
 ```
 
-### Option 2: Download Release
+### Manual Installation
+
 ```bash
-curl -L https://github.com/zzlzzlzzl15/memora-knowledge-graph/releases/download/v2.0.0/memora-knowledge-graph-v2.0.0.tar.gz | tar xz
-cd memora-knowledge-graph
+# Clone repository
+git clone https://github.com/zzlzzlzzl15/Memora.git
+cd Memora/personal_knowledge_base
+
+# Run installation script
+./install.sh
 ```
 
-### Option 3: Install via pip (if published)
+### Docker Compose Deployment (Recommended)
+
 ```bash
-pip install memora-knowledge-graph==2.0.0
+# Clone repository
+git clone https://github.com/zzlzzlzzl15/Memora.git
+cd Memora/personal_knowledge_base
+
+# Configure environment variables
+cp .env.example .env
+# Edit .env with your API keys
+
+# Start services
+docker-compose up -d
+
+# Access application
+# Open http://localhost:8080 in browser
 ```
 
 ## Configuration
 
-Set the environment variable `KB_API_BASE` to point to your Memora backend:
+Set the `KB_API_BASE` environment variable to point to your Memora backend:
 
 ```bash
 export KB_API_BASE=http://127.0.0.1:8080
@@ -101,176 +130,110 @@ Or create a `.env` file:
 KB_API_BASE=http://127.0.0.1:8080
 ```
 
-## Usage
+### Required Environment Variables
 
-### Basic Setup
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `KB_API_BASE` | Memora backend URL | `http://127.0.0.1:8080` |
+| `DEEPSEEK_API_KEY` | DeepSeek API Key (for LLM) | `sk-xxx` |
+| `DASHSCOPE_API_KEY` | DashScope API Key (for embeddings) | `sk-xxx` |
 
-1. **Include HTML Structure**
-   ```html
-   <!-- Knowledge Graph Container -->
-   <div id="kg-view-container">
-       <!-- Document Graph Preview -->
-       <div class="kg-preview-card" id="kg-docs-preview">
-           <div class="kg-preview-header">
-               <h3>📄 Document Graph</h3>
-               <span class="kg-preview-badge" id="kg-docs-badge">0 nodes</span>
-           </div>
-           <div class="kg-preview-canvas">
-               <canvas id="kg-canvas-docs-preview"></canvas>
-               <div class="kg-preview-overlay">
-                   <span class="preview-hint">Click to view full size</span>
-               </div>
-           </div>
-       </div>
-       
-       <!-- Entity Graph Preview -->
-       <div class="kg-preview-card" id="kg-entities-preview">
-           <div class="kg-preview-header">
-               <h3>🔵 Entity Graph</h3>
-               <span class="kg-preview-badge" id="kg-entities-badge">0 nodes</span>
-           </div>
-           <div class="kg-preview-canvas">
-               <canvas id="kg-canvas-entities-preview"></canvas>
-               <div class="kg-preview-overlay">
-                   <span class="preview-hint">Click to view full size</span>
-               </div>
-           </div>
-       </div>
-   </div>
-   
-   <!-- Fullscreen Modal -->
-   <div id="kg-modal" class="kg-modal">
-       <div class="kg-modal-content">
-           <div class="kg-modal-header">
-               <h3 id="kg-modal-title">Knowledge Graph</h3>
-               <div class="kg-modal-controls">
-                   <button id="kg-modal-refresh" class="kg-btn-icon" title="Refresh">
-                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                           <path d="M23 4v6h-6M1 20v-6h6"/>
-                           <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-                       </svg>
-                   </button>
-                   <button id="kg-modal-close" class="kg-btn-icon" title="Close">
-                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                           <line x1="18" y1="6" x2="6" y2="18"/>
-                           <line x1="6" y1="6" x2="18" y2="18"/>
-                       </svg>
-                   </button>
-               </div>
-           </div>
-           <div class="kg-modal-body">
-               <canvas id="kg-canvas-fullscreen"></canvas>
-               <div id="kg-modal-loading" class="kg-modal-loading">
-                   <div class="spinner"></div>
-                   <p>Loading...</p>
-               </div>
-           </div>
-           <div class="kg-modal-footer">
-               <div class="kg-modal-stats">
-                   <span id="kg-modal-node-count">Nodes: 0</span>
-                   <span id="kg-modal-edge-count">Edges: 0</span>
-               </div>
-               <div class="kg-modal-hints">
-                   <span>🖱️ Scroll to zoom</span>
-                   <span>✋ Drag to pan</span>
-                   <span> Hover for details</span>
-               </div>
-           </div>
-       </div>
-   </div>
-   ```
+### Optional Environment Variables
 
-2. **Include CSS Stylesheet**
-   ```html
-   <link rel="stylesheet" href="/static/style.css?v=kg-panning-fix-20260613">
-   ```
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `USE_RERANK` | Enable reranking | `false` |
+| `RERANK_API_KEY` | Qwen3-Rerank API Key | - |
+| `RETRIEVAL_TOP_K` | Initial retrieval candidates | `20` |
+| `QDRANT_DENSE_DEFAULT_THRESHOLD` | Dense vector similarity threshold | `0.7` |
 
-3. **Initialize JavaScript**
-   ```javascript
-   // Call after DOM is ready
-   document.addEventListener('DOMContentLoaded', () => {
-       initKnowledgeGraph();
-   });
-   ```
+## Usage Examples
 
-### API Integration
+### Upload Documents
 
-The knowledge graph automatically fetches data from these endpoints:
+1. Click **"Upload Document"** button in left sidebar
+2. Select file (PDF, DOCX, TXT, MD supported)
+3. Fill in title and tags (optional)
+4. Click **"Upload"** - system automatically parses, chunks, and vectorizes
 
-#### Document Graph
+### Ask Questions
+
+1. Enter question in right-side chat interface
+2. Choose interaction mode:
+   - **Knowledge Query**: Get precise answers based on retrieval
+   - **Knowledge Organization**: Let AI organize and summarize related knowledge
+3. View answer with cited source documents
+
+### Browse Knowledge Graph
+
+1. Click **"Knowledge Graph"** button in top navigation
+2. View two preview cards:
+   - **Document Relationship Graph**: Shows connections between documents
+   - **Entity Relationship Graph**: Shows extracted entities and relationships
+3. Click any card to enter fullscreen modal for interactive exploration:
+   - Scroll to zoom
+   - Drag to pan
+   - Drag nodes to reposition
+   - Hover for details
+
+### Manage Documents
+
+- **View List**: See all documents in left sidebar
+- **Search**: Use quick search function
+- **Recycle Bin**: View and manage deleted documents (recoverable within 30 days)
+- **Permanent Delete**: Permanently remove documents and vector data
+
+## Technical Architecture
+
 ```
-GET /api/v1/documents/knowledge-graph/documents?limit={n}
-Headers: Authorization: Bearer {token}
-
-Response:
-{
-  "nodes": [
-    {"id": "doc_1", "label": "Document Title", "type": "Document"},
-    ...
-  ],
-  "edges": [
-    {"source": "doc_1", "target": "entity_a", "weight": 0.8},
-    ...
-  ],
-  "total_nodes": 50,
-  "total_edges": 120
-}
+┌─────────────────────────────────────────┐
+│           Web Browser                    │
+│     (Frontend UI - HTML/CSS/JS)         │
+└──────────────┬──────────────────────────┘
+               │ HTTP / WebSocket
+┌──────────────▼──────────────────────────┐
+│         Memora Backend                   │
+│       (FastAPI / Python)                │
+──────────┬──────────────┬───────────────┤
+│ Document │  Retrieval   │ AI Services   │
+│Processing│   Engine     │               │
+├──────────┼──────────────┼───────────────┤
+│• PDF     │• Dense Vector│• Embedding    │
+│  Parser  │  Search      │  (DashScope/  │
+│• DOCX    │• Sparse Vector│  Local ST)   │
+│  Parse   │  (BM42)      │• LLM Chat     │
+│• Text    │• Hybrid Search│  (DeepSeek/  │
+│  Split   │• Fallback     │  OpenAI Comp)│
+│• Metadata│  Logic       │• Rerank       │
+│• Upload  │              │  (Qwen3)      │
+│  API     │              │• Stream       │
+│          │              │  Response     │
+└────┬─────┴──────┬───────┴───────┬───────┘
+     │            │               │
+┌────▼────┐ ┌────▼──────┐ ┌──────▼──────┐
+│ MySQL   │ │  Qdrant   │ │ External    │
+│(Metadata)│ │(Vector DB)│ │ APIs        │
+│         │ │           │ │             │
+│• Docs   │ │• Dense    │ │• DashScope  │
+│• Users  │ │  Vectors  │ │• DeepSeek   │
+│• Sessions│ │• Sparse   │ │• OpenAI     │
+│• History │ │  (BM42)   │ │ Compatible  │
+└─────────┘ └───────────┘ └─────────────┘
 ```
 
-#### Entity Graph
-```
-GET /api/v1/documents/knowledge-graph/entities?limit={n}
-Headers: Authorization: Bearer {token}
+### Tech Stack
 
-Response: Same structure as above
-```
-
-### Data Loading Limits
-
-- **Preview Mode**: 
-  - Documents: 50 nodes max
-  - Entities: 80 nodes max
-  
-- **Fullscreen Mode**:
-  - Documents: 200 nodes max
-  - Entities: 300 nodes max
-
-## Customization
-
-### Adjusting Force Parameters
-
-Edit the `forceParams` in `script.js`:
-
-```javascript
-this.forceParams = {
-    repulsion: 1200,        // Higher = more spread out
-    attraction: 0.03,       // Higher = tighter clusters
-    damping: 0.85,          // Lower = faster stabilization
-    centerForce: 0.005,     // Higher = stronger pull to center
-    maxVelocity: 8          // Cap on movement speed
-};
-```
-
-### Changing Colors
-
-Modify in `KnowledgeGraphVisualizer` constructor:
-
-```javascript
-// Node color (default: black)
-this.nodeColor = '#000000';
-
-// Edge opacity calculation (in render method)
-const opacity = Math.min(0.3, 0.1 + weight * 0.05);
-```
-
-### Adjusting Node Sizes
-
-Change base radius and scaling:
-
-```javascript
-baseRadius: 4,  // Minimum node size
-radius: 4 + Math.min((node.label || '').length * 0.3, 6)  // Max additional 6px
-```
+| Component | Technology | Description |
+|-----------|------------|-------------|
+| **Backend Framework** | FastAPI (Python 3.11+) | High-performance async web framework |
+| **Vector Database** | Qdrant | Hybrid retrieval with dense + sparse vectors |
+| **Relational Database** | MySQL 8.0 | Document metadata, users, sessions |
+| **Embedding Model** | DashScope text-embedding-v4 / Sentence-Transformers | Cloud API or local models |
+| **LLM Service** | DeepSeek / OpenAI Compatible | Streaming output, multi-turn chat |
+| **Rerank Model** | Qwen3-Rerank (optional) | Improves retrieval relevance |
+| **Document Parsing** | PyPDF2, docx2txt, LangChain | Multi-format processing |
+| **Web Scraping** | httpx + BeautifulSoup | Built-in crawler, no dependencies |
+| **Containerization** | Docker + Docker Compose | One-click deployment |
 
 ## Troubleshooting
 
@@ -283,11 +246,40 @@ radius: 4 + Math.min((node.label || '').length * 0.3, 6)  // Max additional 6px
 ### Issue: Cannot drag/zoom in modal
 **Solution**: Verify `setInteractive(true)` is called for fullscreen visualizer. Check console logs.
 
-### Issue: "Click to view" always visible
-**Solution**: Ensure CSS has `opacity: 0 !important` and `visibility: hidden` for `.kg-preview-overlay`.
+### Issue: Service won't start
+**Solution**: 
+```bash
+# Check logs
+docker-compose logs -f app
 
-### Issue: Graph looks squashed
-**Solution**: Call `visualizer.resize()` after modal opens to recalculate canvas dimensions.
+# Clean and restart
+docker-compose down -v
+docker-compose up -d
+```
+
+### Issue: Document upload fails
+**Solution**:
+- Check file format (PDF, DOCX, TXT, MD only)
+- Check file size (default limit: 10MB)
+- Review application logs: `docker-compose logs -f app`
+
+### Issue: No retrieval results
+**Solution**:
+- Confirm documents are uploaded and vectorized
+- Try different query terms
+- Lower `QDRANT_DENSE_DEFAULT_THRESHOLD` value
+
+### Issue: LLM call fails
+**Solution**:
+```bash
+# Check API key configuration
+cat .env | grep API_KEY
+
+# Test API connectivity
+curl -H "Authorization: Bearer $DEEPSEEK_API_KEY" \
+  https://api.deepseek.com/v1/chat/completions \
+  -d '{"model":"deepseek-chat","messages":[{"role":"user","content":"test"}]}'
+```
 
 ## Performance Tips
 
@@ -309,33 +301,32 @@ Requires:
 - CSS backdrop-filter
 - ES6+ JavaScript features
 
-## Dependencies
-
-**No external dependencies!** Uses only:
-- HTML5 Canvas 2D API
-- Vanilla JavaScript (ES6+)
-- CSS3 (with vendor prefixes where needed)
-
-## License
-
-MIT License - See LICENSE file for details
-
 ## Contributing
 
 Contributions welcome! Please:
 1. Fork the repository
-2. Create a feature branch
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes
-4. Submit a pull request
+4. Commit your changes (`git commit -m 'Add amazing feature'`)
+5. Push to the branch (`git push origin feature/amazing-feature`)
+6. Submit a pull request
 
 ## Support
 
 For issues and questions:
-- GitHub Issues: https://github.com/zzlzzlzzl15/memora-knowledge-graph/issues
+- GitHub Issues: https://github.com/zzlzzlzzl15/Memora/issues
 - Email: support@memora.dev
+- Documentation: https://github.com/zzlzzlzzl15/Memora/blob/main/personal_knowledge_base/README.md
 
 ## Acknowledgments
 
 - Inspired by [Obsidian](https://obsidian.md/) graph view
 - Built for [Memora](https://github.com/zzlzzlzzl15/Memora) personal knowledge base
 - Uses force-directed layout algorithm similar to D3.js force simulation
+- References [RAG-Anything](https://github.com/RAG-Anything/RAG-Anything) for multimodal RAG architecture
+
+---
+
+**Made with ❤️ by zzlzzlzzl15**
+
+*Memora - Your Personal AI Knowledge Base*

@@ -10,7 +10,7 @@ description: >
   have AI-powered conversations about their knowledge, visualize document/entity relationships,
   or integrate knowledge management into their OpenClaw workflow.
 metadata:
-  version: 2.0.4
+  version: 2.0.5
   author: zzlzzlzzl15
   license: MIT
   openclaw:
@@ -25,7 +25,16 @@ metadata:
 
 ## Version History
 
-### v2.0.4 (Current)
+### v2.0.5 (Current)
+- 📝 **Complete SKILL.md Rewrite**: Updated OpenClaw skill definition with full product overview
+- 🎨 **Knowledge Graph v2.0**: Preview + Fullscreen Modal architecture
+- 🖱️ **Enhanced Interactions**: Zoom, pan, drag, hover details
+-  **Centered Layout**: Force-directed algorithm with origin-centered positioning
+- 🔄 **Smart Caching**: Preview data cached, modal uses larger dataset
+-  **Dual Views**: Document graph + Entity graph
+-  **Package Updates**: Fixed package.json version mismatch
+
+### v2.0.4
 - 📝 **Complete Product Documentation**: Comprehensive README with full product overview
 - 🎨 **Knowledge Graph v2.0**: Preview + Fullscreen Modal architecture
 - 🖱️ **Enhanced Interactions**: Zoom, pan, drag, hover details

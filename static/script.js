@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
             uploadSource: '上传来源',
             chatPlaceholder: '输入问题，例如：总结最近上传的文档要点',
             sendButton: '发送',
-            studioTitle: '工作室',
+            studioTitle: '知识图谱',
             audioTitle: '音频预览',
             audioDesc: '预留功能，后续开放',
             mindmapTitle: '思维导图',
@@ -45,7 +45,80 @@ document.addEventListener('DOMContentLoaded', () => {
             statsTotalAdded: '新增文档',
             statsTotalDeleted: '删除文档',
             statsActiveDays: '活跃天数',
-            statsLegendLabel: '活跃度：'
+            statsLegendLabel: '活跃度：',
+            // 知识图谱
+            kgTitle: '🕸️ 知识图谱',
+            kgDesc: '查看文档实体关系网络',
+            kgDocGraph: '📄 文档图谱',
+            kgEntityGraph: '🔵 实体图谱',
+            kgLoading: '加载知识图谱...',
+            kgDocLabel: '文档:',
+            kgEntityLabel: '实体:',
+            kgRelationLabel: '关系:',
+            kgRefreshTitle: '刷新图谱',
+            kgCloseTitle: '关闭图谱',
+            // 上传来源弹窗
+            sourceModalTitle: '上传来源',
+            tabUrl: '网址',
+            tabFile: '文档',
+            sourceUrlLabel: '来源网址',
+            sourceUrlPlaceholder: 'https://example.com/article',
+            sourceTitleOptional: '标题（可选）',
+            sourceTitlePlaceholder: '为该来源设置标题',
+            urlCrawling: '抓取中…',
+            urlCrawlTip: '系统将尝试抓取网页文本并进行知识梳理与总结。',
+            urlCrawlBtn: '抓取并整理',
+            selectFileLabel: '选择文件',
+            fileTitleLabel: '标题',
+            fileTitlePlaceholder: '为该文档设置标题',
+            uploadBtnText: '上传',
+            // 其他UI文本
+            noHistorySessions: '暂无历史会话',
+            saving: '保存中...',
+            confirmChange: '确认修改',
+            save: '保存',
+            uploading: '上传中...',
+            upload: '上传',
+            crawling: '抓取中…',
+            crawlComplete: '抓取完成',
+            crawlFailed: '抓取失败',
+            noDocuments: '暂无文档，请上传文件',
+            trashEmpty: '回收站为空。',
+            restore: '恢复',
+            // Alert消息
+            alertRegistering: '正在注册，请稍候…',
+            alertFillEmailAndGetOtp: '请填写邮箱并获取验证码',
+            alertRegisterSuccess: '注册成功！请使用该账户登录。',
+            alertUsernameExists: '该用户名已存在，请更换用户名或直接登录。',
+            alertEmailExists: '该邮箱已存在，请更换邮箱或直接登录。',
+            alertRegisterTimeout: '注册请求超时（30秒）。请检查网络或稍后重试。',
+            alertRegisterError: '注册过程中出现错误。',
+            alertEnterEmail: '请输入邮箱地址',
+            alertOtpSent: '验证码已发送，请查看您的邮箱',
+            alertSendOtpError: '发送验证码出现错误',
+            alertEnterPhone: '请输入手机号',
+            alertOtpSentDev: '验证码已发送（开发环境：查看后端日志）',
+            alertLoginFirst: '请先登录',
+            alertFillAllPasswordFields: '请填写所有密码字段',
+            alertPasswordMismatch: '两次输入的新密码不一致',
+            alertPasswordMinLength: '密码长度至少6位',
+            alertPasswordSameAsOld: '新密码不能与旧密码相同',
+            alertPasswordChangeSuccess: '密码修改成功！请使用新密码重新登录',
+            alertProfileSaveSuccess: '资料保存成功！',
+            alertUsernameMinLength: '用户名至少需要3个字符',
+            alertRegisterFailed: '注册失败：',
+            alertSendFailed: '发送失败：',
+            alertChangeFailed: '修改失败：',
+            alertSaveFailed: '保存失败：',
+            alertErrorOccurred: '出现错误',
+            alertLoginFailed: '登录失败：',
+            alertLoginError: '登录过程中出现错误。',
+            alertCreateDocFailed: '创建文档失败：',
+            alertUploadFailed: '上传失败：',
+            alertCrawlFailed: '抓取失败：',
+            alertGetDocFailed: '获取文档失败：',
+            alertDeleteFailed: '删除失败：',
+            alertLoadTrashFailed: '无法加载回收站：'
         ,
             // 登录表单
             loginUsername: '用户名或邮箱',
@@ -56,6 +129,9 @@ document.addEventListener('DOMContentLoaded', () => {
             otpLogin: '验证码登录',
             loginFooterText: '没有账户？',
             registerHere: '立即注册',
+            // 注册表单额外字段
+            registerPhone: '手机号（可选）',
+            registerPasswordPlaceholder: '设置密码',
             // 验证码登录
             otpPhone: '手机号码',
             otpCode: '输入邮箱验证码',
@@ -92,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
             uploadSource: 'Upload Source',
             chatPlaceholder: 'Enter a question, e.g., summarize recent uploaded documents',
             sendButton: 'Send',
-            studioTitle: 'Studio',
+            studioTitle: 'Knowledge Graph',
             audioTitle: 'Audio Preview',
             audioDesc: 'Coming soon',
             mindmapTitle: 'Mind Map',
@@ -110,7 +186,80 @@ document.addEventListener('DOMContentLoaded', () => {
             statsTotalAdded: 'Documents Added',
             statsTotalDeleted: 'Documents Deleted',
             statsActiveDays: 'Active Days',
-            statsLegendLabel: 'Activity:'
+            statsLegendLabel: 'Activity:',
+            // Knowledge Graph
+            kgTitle: '🕸️ Knowledge Graph',
+            kgDesc: 'View document entity relationship network',
+            kgDocGraph: '📄 Document Graph',
+            kgEntityGraph: '🔵 Entity Graph',
+            kgLoading: 'Loading knowledge graph...',
+            kgDocLabel: 'Docs:',
+            kgEntityLabel: 'Entities:',
+            kgRelationLabel: 'Relations:',
+            kgRefreshTitle: 'Refresh Graph',
+            kgCloseTitle: 'Close Graph',
+            // Upload Source Modal
+            sourceModalTitle: 'Upload Source',
+            tabUrl: 'URL',
+            tabFile: 'Document',
+            sourceUrlLabel: 'Source URL',
+            sourceUrlPlaceholder: 'https://example.com/article',
+            sourceTitleOptional: 'Title (Optional)',
+            sourceTitlePlaceholder: 'Set a title for this source',
+            urlCrawling: 'Crawling…',
+            urlCrawlTip: 'The system will attempt to crawl the webpage text and organize knowledge.',
+            urlCrawlBtn: 'Crawl & Organize',
+            selectFileLabel: 'Select File',
+            fileTitleLabel: 'Title',
+            fileTitlePlaceholder: 'Set a title for this document',
+            uploadBtnText: 'Upload',
+            // Other UI text
+            noHistorySessions: 'No history sessions',
+            saving: 'Saving...',
+            confirmChange: 'Confirm Change',
+            save: 'Save',
+            uploading: 'Uploading...',
+            upload: 'Upload',
+            crawling: 'Crawling…',
+            crawlComplete: 'Crawl Complete',
+            crawlFailed: 'Crawl Failed',
+            noDocuments: 'No documents, please upload files',
+            trashEmpty: 'Recycle bin is empty.',
+            restore: 'Restore',
+            // Alert messages
+            alertRegistering: 'Registering, please wait…',
+            alertFillEmailAndGetOtp: 'Please fill in email and get verification code',
+            alertRegisterSuccess: 'Registration successful! Please login with this account.',
+            alertUsernameExists: 'This username already exists, please use another or login directly.',
+            alertEmailExists: 'This email already exists, please use another or login directly.',
+            alertRegisterTimeout: 'Registration request timed out (30s). Please check network or try again later.',
+            alertRegisterError: 'An error occurred during registration.',
+            alertEnterEmail: 'Please enter email address',
+            alertOtpSent: 'Verification code sent, please check your email',
+            alertSendOtpError: 'Error sending verification code',
+            alertEnterPhone: 'Please enter phone number',
+            alertOtpSentDev: 'Verification code sent (dev environment: check backend logs)',
+            alertLoginFirst: 'Please login first',
+            alertFillAllPasswordFields: 'Please fill in all password fields',
+            alertPasswordMismatch: 'The two new passwords do not match',
+            alertPasswordMinLength: 'Password must be at least 6 characters',
+            alertPasswordSameAsOld: 'New password cannot be the same as old password',
+            alertPasswordChangeSuccess: 'Password changed successfully! Please re-login with new password',
+            alertProfileSaveSuccess: 'Profile saved successfully!',
+            alertUsernameMinLength: 'Username must be at least 3 characters',
+            alertRegisterFailed: 'Registration failed: ',
+            alertSendFailed: 'Send failed: ',
+            alertChangeFailed: 'Change failed: ',
+            alertSaveFailed: 'Save failed: ',
+            alertErrorOccurred: 'An error occurred',
+            alertLoginFailed: 'Login failed: ',
+            alertLoginError: 'An error occurred during login.',
+            alertCreateDocFailed: 'Failed to create document: ',
+            alertUploadFailed: 'Upload failed: ',
+            alertCrawlFailed: 'Crawl failed: ',
+            alertGetDocFailed: 'Failed to get document: ',
+            alertDeleteFailed: 'Delete failed: ',
+            alertLoadTrashFailed: 'Failed to load recycle bin: '
         ,
             // Login form
             loginUsername: 'Username or Email',
@@ -121,6 +270,9 @@ document.addEventListener('DOMContentLoaded', () => {
             otpLogin: 'OTP Login',
             loginFooterText: "Don't have an account?",
             registerHere: 'Register here',
+            // Register form extra fields
+            registerPhone: 'Phone Number (Optional)',
+            registerPasswordPlaceholder: 'Set Password',
             // OTP login
             otpPhone: 'Phone Number',
             otpCode: 'Enter Email OTP',
@@ -195,7 +347,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const registerEmailEl = document.getElementById('register-email');
         if (registerEmailEl) registerEmailEl.placeholder = t.registerEmail;
         const registerPasswordEl = document.getElementById('register-password');
-        if (registerPasswordEl) registerPasswordEl.placeholder = t.registerPassword;
+        if (registerPasswordEl) registerPasswordEl.placeholder = t.registerPasswordPlaceholder;
+        const registerPhoneEl = document.getElementById('register-phone');
+        if (registerPhoneEl) registerPhoneEl.placeholder = t.registerPhone;
         const registerOtpCodeEl = document.getElementById('register-otp-code');
         if (registerOtpCodeEl) registerOtpCodeEl.placeholder = t.otpCode;
         const sendRegisterOtpBtnEl = document.getElementById('send-register-otp-btn');
@@ -265,6 +419,87 @@ document.addEventListener('DOMContentLoaded', () => {
         const legendLabel = document.querySelector('.stats-legend > span');
         if (legendLabel) legendLabel.textContent = t.statsLegendLabel;
         
+        // 更新知识图谱相关文本
+        const kgTitleEl = document.getElementById('kg-title');
+        if (kgTitleEl) kgTitleEl.textContent = t.kgTitle;
+        const kgDescEl = document.getElementById('kg-desc');
+        if (kgDescEl) kgDescEl.textContent = t.kgDesc;
+        
+        // 更新知识图谱标签按钮
+        const kgTabs = document.querySelectorAll('.kg-tab');
+        if (kgTabs.length >= 2) {
+            kgTabs[0].textContent = t.kgDocGraph;
+            kgTabs[1].textContent = t.kgEntityGraph;
+        }
+        
+        // 更新加载提示
+        const kgLoadingEl = document.querySelector('#kg-loading-overlay p');
+        if (kgLoadingEl) kgLoadingEl.textContent = t.kgLoading;
+        
+        // 更新统计栏标签
+        const statLabels = document.querySelectorAll('#kg-stats-bar .stat-label');
+        if (statLabels.length >= 3) {
+            statLabels[0].textContent = t.kgDocLabel;
+            statLabels[1].textContent = t.kgEntityLabel;
+            statLabels[2].textContent = t.kgRelationLabel;
+        }
+        
+        // 更新按钮title
+        const kgRefreshBtn = document.getElementById('kg-refresh-btn');
+        if (kgRefreshBtn) kgRefreshBtn.title = t.kgRefreshTitle;
+        const kgCloseBtn = document.getElementById('kg-close-btn');
+        if (kgCloseBtn) kgCloseBtn.title = t.kgCloseTitle;
+        
+        // 更新上传来源弹窗
+        const sourceModalTitleEl = document.querySelector('#source-modal .modal-header h3');
+        if (sourceModalTitleEl) sourceModalTitleEl.textContent = t.sourceModalTitle;
+        
+        const tabUrlEl = document.getElementById('tab-url');
+        if (tabUrlEl) tabUrlEl.textContent = t.tabUrl;
+        const tabFileEl = document.getElementById('tab-file');
+        if (tabFileEl) tabFileEl.textContent = t.tabFile;
+        
+        // URL标签页
+        const urlLabels = document.querySelectorAll('#tab-url-body label');
+        if (urlLabels.length >= 2) {
+            urlLabels[0].textContent = t.sourceUrlLabel;
+            urlLabels[1].textContent = t.sourceTitleOptional;
+        }
+        const sourceUrlInput = document.getElementById('source-url-input');
+        if (sourceUrlInput) sourceUrlInput.placeholder = t.sourceUrlPlaceholder;
+        const sourceUrlTitle = document.getElementById('source-url-title');
+        if (sourceUrlTitle) sourceUrlTitle.placeholder = t.sourceTitlePlaceholder;
+        
+        const urlCrawlLabel = document.getElementById('url-crawl-progress-label');
+        if (urlCrawlLabel) {
+            // 保留百分比数字，只替换文字部分
+            const currentText = urlCrawlLabel.textContent;
+            const percentMatch = currentText.match(/(\d+)%/);
+            if (percentMatch) {
+                urlCrawlLabel.textContent = `${t.urlCrawling} ${percentMatch[1]}%`;
+            } else {
+                urlCrawlLabel.textContent = t.urlCrawling + ' 0%';
+            }
+        }
+        
+        const urlCrawlTipEl = document.querySelector('#tab-url-body .tip');
+        if (urlCrawlTipEl) urlCrawlTipEl.textContent = t.urlCrawlTip;
+        
+        const submitUrlBtn = document.getElementById('submit-url-btn');
+        if (submitUrlBtn) submitUrlBtn.textContent = t.urlCrawlBtn;
+        
+        // 文件标签页
+        const fileLabels = document.querySelectorAll('#tab-file-body label');
+        if (fileLabels.length >= 2) {
+            fileLabels[0].textContent = t.selectFileLabel;
+            fileLabels[1].textContent = t.fileTitleLabel;
+        }
+        const sourceFileTitle = document.getElementById('source-file-title');
+        if (sourceFileTitle) sourceFileTitle.placeholder = t.fileTitlePlaceholder;
+        
+        const submitFileBtn = document.getElementById('submit-file-btn');
+        if (submitFileBtn) submitFileBtn.textContent = t.uploadBtnText;
+        
         // 更新下拉菜单语言选项加粗状态
         const menuLangZh = document.getElementById('menu-lang-zh');
         const menuLangEn = document.getElementById('menu-lang-en');
@@ -296,6 +531,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     // 初始化语言
     updateLanguage(currentLang);
+    
+    // 辅助函数：显示多语言alert
+    function showAlert(messageKey) {
+        const t = translations[currentLang];
+        alert(t[messageKey] || messageKey);
+    }
+    
+    // 辅助函数：显示带参数的多语言alert
+    function showAlertWithParam(prefixKey, param) {
+        const t = translations[currentLang];
+        alert(`${t[prefixKey] || prefixKey}${param}`);
+    }
 
     // ========== 通用工具函数 ==========
     
@@ -588,7 +835,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!sessions.length) {
                 const empty = document.createElement('div');
                 empty.className = 'empty';
-                empty.textContent = (currentLang === 'zh' ? '暂无历史会话' : 'No history sessions');
+                empty.textContent = t.noHistorySessions;
                 contentContainer.appendChild(empty);
                 return sessions;
             }
@@ -753,7 +1000,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function registerUser() {
         if (isRegistering) {
-            alert('正在注册，请稍候…');
+            showAlert('alertRegistering');
             return;
         }
         isRegistering = true;
@@ -766,7 +1013,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const otpCode = document.getElementById('register-otp-code').value.trim();
 
         if (!email || !otpCode) {
-            alert('请填写邮箱并获取验证码');
+            showAlert('alertFillEmailAndGetOtp');
             isRegistering = false;
             registerBtn.disabled = false;
             return;
@@ -788,7 +1035,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Register: response status', response.status);
 
             if (response.ok) {
-                alert('注册成功！请使用该账户登录。');
+                showAlert('alertRegisterSuccess');
                 // 切换到登录页并填充用户名/密码，便于直接登录
                 document.getElementById('login-username').value = username;
                 document.getElementById('login-password').value = password;
@@ -797,21 +1044,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 let detail = '';
                 try { detail = (await response.json())?.detail || ''; } catch (_) {}
                 if (typeof detail === 'string' && (detail.includes('用户名') && detail.includes('已存在'))) {
-                    alert('该用户名已存在，请更换用户名或直接登录。');
+                    showAlert('alertUsernameExists');
                 } else if (typeof detail === 'string' && (detail.includes('邮箱') && detail.includes('已存在'))) {
-                    alert('该邮箱已存在，请更换邮箱或直接登录。');
+                    showAlert('alertEmailExists');
                 } else if (typeof detail === 'string' && detail.includes('验证码')) {
-                    alert(`注册失败：${detail}`);
+                    alert(`${translations[currentLang].alertRegisterFailed}${detail}`);
                 } else {
-                    alert(`注册失败：${detail || response.status}`);
+                    alert(`${translations[currentLang].alertRegisterFailed}${detail || response.status}`);
                 }
             }
         } catch (error) {
             if (error && error.name === 'AbortError') {
-                alert('注册请求超时（30秒）。请检查网络或稍后重试。');
+                showAlert('alertRegisterTimeout');
             } else {
                 console.error('Registration error:', error);
-                alert('注册过程中出现错误。');
+                showAlert('alertRegisterError');
             }
         } finally {
             clearTimeout(timer);
@@ -822,54 +1069,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function sendRegisterOtp() {
         const email = document.getElementById('register-email').value.trim();
-        if (!email) { alert('请输入邮箱地址'); return; }
+        if (!email) { showAlert('alertEnterEmail'); return; }
         try {
             sendRegisterOtpBtn.disabled = true;
             const resp = await fetch(`${apiBaseUrl}/api/v1/auth/otp/send/email`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email })
             });
-            if (resp.ok) { alert('验证码已发送，请查看您的邮箱'); } else {
+            if (resp.ok) { showAlert('alertOtpSent'); } else {
                 let msg = ''; try { msg = (await resp.json())?.detail || ''; } catch(_){}
-                alert(`发送失败：${msg || resp.status}`);
+                alert(`${translations[currentLang].alertSendFailed}${msg || resp.status}`);
             }
-        } catch (e) { console.error('sendRegisterOtp error:', e); alert('发送验证码出现错误'); }
+        } catch (e) { console.error('sendRegisterOtp error:', e); showAlert('alertSendOtpError'); }
         finally { sendRegisterOtpBtn.disabled = false; }
     }
 
     async function sendPhoneOtp() {
         const phone_number = document.getElementById('otp-phone').value.trim();
-        if (!phone_number) { alert('请输入手机号'); return; }
+        if (!phone_number) { showAlert('alertEnterPhone'); return; }
         try {
             sendOtpBtn.disabled = true;
             const resp = await fetch(`${apiBaseUrl}/api/v1/auth/otp/send`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone_number })
             });
-            if (resp.ok) { alert('验证码已发送（开发环境：查看后端日志）'); } else {
+            if (resp.ok) { showAlert('alertOtpSentDev'); } else {
                 let msg = ''; try { msg = (await resp.json())?.detail || ''; } catch(_){}
-                alert(`发送失败：${msg || resp.status}`);
+                alert(`${translations[currentLang].alertSendFailed}${msg || resp.status}`);
             }
-        } catch (e) { console.error('sendPhoneOtp error:', e); alert('发送验证码出现错误'); }
+        } catch (e) { console.error('sendPhoneOtp error:', e); showAlert('alertSendOtpError'); }
         finally { sendOtpBtn.disabled = false; }
     }
 
     async function sendEmailOtp() {
         const email = document.getElementById('email-otp-email').value.trim();
-        if (!email) { alert('请输入邮箱地址'); return; }
+        if (!email) { showAlert('alertEnterEmail'); return; }
         try {
             sendEmailOtpBtn.disabled = true;
             const resp = await fetch(`${apiBaseUrl}/api/v1/auth/otp/send/email`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, for_login: true })
             });
-            if (resp.ok) { alert('验证码已发送，请查看您的邮箱'); } else {
+            if (resp.ok) { showAlert('alertOtpSent'); } else {
                 let msg = ''; try { msg = (await resp.json())?.detail || ''; } catch(_){}
-                alert(`发送失败：${msg || resp.status}`);
+                alert(`${translations[currentLang].alertSendFailed}${msg || resp.status}`);
             }
-        } catch (e) { console.error('sendEmailOtp error:', e); alert('发送验证码出现错误'); }
+        } catch (e) { console.error('sendEmailOtp error:', e); showAlert('alertSendOtpError'); }
         finally { sendEmailOtpBtn.disabled = false; }
     }
 
     async function loginByOtp() {
-        if (isLoggingIn) { alert('正在登录，请稍候…'); return; }
+        if (isLoggingIn) { showAlert('alertLoginFirst'); return; }
         isLoggingIn = true;
         loginOtpBtn.disabled = true;
         const phone_number = document.getElementById('otp-phone').value.trim();
@@ -892,8 +1139,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             let errDetail = ''; try { errDetail = (await response.json())?.detail || ''; } catch(_){}
-            alert(`登录失败：${errDetail || response.status}`);
-        } catch (e) { console.error('loginByOtp error:', e); alert('登录过程中出现错误。'); }
+            showAlertWithParam('alertLoginFailed', errDetail || response.status);
+        } catch (e) { console.error('loginByOtp error:', e); showAlert('alertLoginError'); }
         finally { isLoggingIn = false; loginOtpBtn.disabled = false; }
     }
 
@@ -921,8 +1168,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             let errDetail = ''; try { errDetail = (await response.json())?.detail || ''; } catch(_){}
-            alert(`登录失败：${errDetail || response.status}`);
-        } catch (e) { console.error('loginByEmailOtp error:', e); alert('登录过程中出现错误。'); }
+            showAlertWithParam('alertLoginFailed', errDetail || response.status);
+        } catch (e) { console.error('loginByEmailOtp error:', e); showAlert('alertLoginError'); }
         finally { isLoggingIn = false; emailOtpLoginBtn.disabled = false; }
     }
     async function loginUser() {
@@ -1204,7 +1451,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             if (changePasswordSaveBtn) {
                 changePasswordSaveBtn.disabled = true;
-                changePasswordSaveBtn.textContent = '保存中...';
+                changePasswordSaveBtn.textContent = translations[currentLang].saving;
             }
             
             const updateData = {
@@ -1239,7 +1486,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             if (changePasswordSaveBtn) {
                 changePasswordSaveBtn.disabled = false;
-                changePasswordSaveBtn.textContent = '确认修改';
+                changePasswordSaveBtn.textContent = translations[currentLang].confirmChange;
             }
         }
     });
@@ -1319,7 +1566,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             if (profileSaveBtn) {
                 profileSaveBtn.disabled = true;
-                profileSaveBtn.textContent = '保存中...';
+                profileSaveBtn.textContent = translations[currentLang].saving;
             }
             
             const updateData = {
@@ -1353,7 +1600,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             if (profileSaveBtn) {
                 profileSaveBtn.disabled = false;
-                profileSaveBtn.textContent = '保存';
+                profileSaveBtn.textContent = translations[currentLang].save;
             }
         }
     });
@@ -1385,7 +1632,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             if (changeEmailSaveBtn) {
                 changeEmailSaveBtn.disabled = true;
-                changeEmailSaveBtn.textContent = '保存中...';
+                changeEmailSaveBtn.textContent = translations[currentLang].saving;
             }
             
             const updateData = {
@@ -1420,7 +1667,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             if (changeEmailSaveBtn) {
                 changeEmailSaveBtn.disabled = false;
-                changeEmailSaveBtn.textContent = '确认修改';
+                changeEmailSaveBtn.textContent = translations[currentLang].confirmChange;
             }
         }
     });
@@ -1508,7 +1755,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             avatarUploadBtn.disabled = true;
-            avatarUploadBtn.textContent = '上传中...';
+            avatarUploadBtn.textContent = translations[currentLang].uploading;
             
             const formData = new FormData();
             formData.append('file', selectedAvatarFile);
@@ -1545,7 +1792,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             if (avatarUploadBtn) {
                 avatarUploadBtn.disabled = false;
-                avatarUploadBtn.textContent = '上传';
+                avatarUploadBtn.textContent = translations[currentLang].upload;
             }
         }
     });
@@ -1818,7 +2065,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const showProgress = () => {
             if (urlCrawlProgress) urlCrawlProgress.style.display = 'block';
             if (urlCrawlProgressBar) urlCrawlProgressBar.style.width = `${progress}%`;
-            if (urlCrawlProgressLabel) urlCrawlProgressLabel.textContent = `抓取中… ${Math.floor(progress)}%`;
+            if (urlCrawlProgressLabel) urlCrawlProgressLabel.textContent = `${translations[currentLang].crawling} ${Math.floor(progress)}%`;
         };
         const startProgress = () => {
             progress = 0;
@@ -1833,7 +2080,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (progTimer) { clearInterval(progTimer); progTimer = null; }
             progress = 100;
             if (urlCrawlProgressBar) urlCrawlProgressBar.style.width = '100%';
-            if (urlCrawlProgressLabel) urlCrawlProgressLabel.textContent = ok ? '抓取完成' : '抓取失败';
+            if (urlCrawlProgressLabel) urlCrawlProgressLabel.textContent = ok ? translations[currentLang].crawlComplete : translations[currentLang].crawlFailed;
             setTimeout(() => { if (urlCrawlProgress) urlCrawlProgress.style.display = 'none'; }, 800);
         };
 
@@ -1997,7 +2244,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         documentList.innerHTML = '';
         if (!Array.isArray(documents) || documents.length === 0) {
-            documentList.innerHTML = '<p style="color: var(--text-tertiary); padding: 20px; text-align: center;">暂无文档，请上传文件</p>';
+            documentList.innerHTML = `<p style="color: var(--text-tertiary); padding: 20px; text-align: center;">${translations[currentLang].noDocuments}</p>`;
             console.log('No documents to display');
             return;
         }
@@ -2033,7 +2280,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderDeletedDocuments(documents) {
         deletedDocumentList.innerHTML = '';
         if (documents.length === 0) {
-            deletedDocumentList.innerHTML = '<p>回收站为空。</p>';
+            deletedDocumentList.innerHTML = `<p>${translations[currentLang].trashEmpty}</p>`;
             return;
         }
         documents.forEach(doc => {
@@ -2049,7 +2296,7 @@ document.addEventListener('DOMContentLoaded', () => {
             actions.classList.add('deleted-actions');
 
             const restoreBtn = document.createElement('button');
-            restoreBtn.textContent = '恢复';
+            restoreBtn.textContent = translations[currentLang].restore;
             restoreBtn.classList.add('restore-btn');
             restoreBtn.dataset.docId = doc.document_id;
 
@@ -2939,8 +3186,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // 知识图谱可视化类 (类似 Obsidian)
 class KnowledgeGraphVisualizer {
-    constructor() {
-        this.canvas = document.getElementById('kg-canvas');
+    constructor(canvasId) {
+        this.canvas = document.getElementById(canvasId);
         this.ctx = this.canvas?.getContext('2d');
         this.nodes = [];
         this.edges = [];
@@ -2948,39 +3195,48 @@ class KnowledgeGraphVisualizer {
         this.isDragging = false;
         this.draggedNode = null;
         this.hoveredNode = null;
+        this.prevHoveredNode = null; // 上次悬停的节点
+        this.isPanning = false; // 是否正在平移画布
+        this.lastMouseX = 0; // 上次鼠标X位置
+        this.lastMouseY = 0; // 上次鼠标Y位置
         this.transform = { x: 0, y: 0, scale: 1 };
+        this.interactive = true; // 默认交互
         
-        // 节点颜色映射 - 根据类型设置不同颜色
-        this.nodeColors = {
-            'Document': '#667eea',      // 文档 - 紫色
-            'Person': '#FF6B6B',        // 人物 - 红色
-            'Organization': '#4ECDC4',  // 组织 - 青色
-            'Location': '#95E1D3',      // 地点 - 绿色
-            'Concept': '#F38181',       // 概念 - 粉色
-            'Event': '#AA96DA',         // 事件 - 淡紫
-            'Entity': '#A8D8EA'         // 实体 - 蓝色
-        };
+        // 节点颜色 - 黑色
+        this.nodeColor = '#000000';
         
         // 力导向布局参数
         this.forceParams = {
-            repulsion: 800,           // 排斥力
-            attraction: 0.05,         // 吸引力
-            damping: 0.9,             // 阻尼系数
-            centerForce: 0.01,        // 中心力
-            maxVelocity: 5            // 最大速度
+            repulsion: 1200,
+            attraction: 0.03,
+            damping: 0.85,
+            centerForce: 0.005,
+            maxVelocity: 8
         };
         
         this.initEvents();
     }
     
+    setInteractive(value) {
+        this.interactive = value;
+    }
+    
     initEvents() {
         if (!this.canvas) return;
         
-        // 鼠标事件
-        this.canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
-        this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
-        this.canvas.addEventListener('mouseup', () => this.handleMouseUp());
-        this.canvas.addEventListener('wheel', (e) => this.handleWheel(e), { passive: false });
+        // 鼠标事件 (只在交互模式下启用)
+        this.canvas.addEventListener('mousedown', (e) => {
+            if (this.interactive) this.handleMouseDown(e);
+        });
+        this.canvas.addEventListener('mousemove', (e) => {
+            if (this.interactive) this.handleMouseMove(e);
+        });
+        this.canvas.addEventListener('mouseup', () => {
+            if (this.interactive) this.handleMouseUp();
+        });
+        this.canvas.addEventListener('wheel', (e) => {
+            if (this.interactive) this.handleWheel(e);
+        }, { passive: false });
         
         // 窗口大小变化
         window.addEventListener('resize', () => this.resize());
@@ -3006,17 +3262,19 @@ class KnowledgeGraphVisualizer {
         const width = this.canvas?.width || 800;
         const height = this.canvas?.height || 600;
         
-        // 初始化节点位置 - 使用圆形分布，看起来更美观
+        // 初始化节点位置 - 使用圆形分布，以画布中心为原点
         this.nodes = data.nodes.map((node, i) => {
             const angle = (i / Math.max(data.nodes.length, 1)) * Math.PI * 2;
-            const radius = Math.min(width, height) * 0.3;
+            const radius = Math.min(width, height) * 0.35; // 更大的半径，布局更分散
             return {
                 ...node,
-                x: Math.cos(angle) * radius + width / 2,
-                y: Math.sin(angle) * radius + height / 2,
+                x: Math.cos(angle) * radius,  // 相对于原点的坐标
+                y: Math.sin(angle) * radius,
                 vx: 0,
                 vy: 0,
-                radius: 15 + Math.min((node.label || node.name || 'Node').length * 1.5, 25),
+                // Obsidian风格：小圆点，根据连接数调整大小
+                baseRadius: 4,  // 基础半径更小
+                radius: 4 + Math.min((node.label || node.name || 'Node').length * 0.3, 6),
                 color: this.getNodeColor(node.type || 'Entity')
             };
         });
@@ -3028,7 +3286,7 @@ class KnowledgeGraphVisualizer {
     }
     
     getNodeColor(type) {
-        return this.nodeColors[type] || this.nodeColors['Entity'];
+        return this.nodeColor;
     }
     
     initForceLayout() {
@@ -3040,8 +3298,9 @@ class KnowledgeGraphVisualizer {
         
         const width = this.canvas?.width || 800;
         const height = this.canvas?.height || 600;
-        const centerX = width / 2;
-        const centerY = height / 2;
+        // 注意：节点坐标是以原点(0,0)为中心的，不是以画布中心
+        const centerX = 0;  // 原点
+        const centerY = 0;  // 原点
         
         // 使用配置的参数
         const { repulsion, attraction, damping, centerForce, maxVelocity } = this.forceParams;
@@ -3117,10 +3376,12 @@ class KnowledgeGraphVisualizer {
                 node.x += node.vx;
                 node.y += node.vy;
                 
-                // 边界约束（保持在画布内）
+                // 边界约束（保持在以原点为中心的画布范围内）
                 const margin = node.radius + 10;
-                node.x = Math.max(margin, Math.min(width - margin, node.x));
-                node.y = Math.max(margin, Math.min(height - margin, node.y));
+                const halfWidth = width / 2 - margin;
+                const halfHeight = height / 2 - margin;
+                node.x = Math.max(-halfWidth, Math.min(halfWidth, node.x));
+                node.y = Math.max(-halfHeight, Math.min(halfHeight, node.y));
             }
         }
     }
@@ -3129,89 +3390,85 @@ class KnowledgeGraphVisualizer {
         if (!this.ctx || !this.canvas) return;
         
         const { width, height } = this.canvas;
-        this.ctx.clearRect(0, 0, width, height);
         
-        // 绘制背景网格（类似 Obsidian）
-        this.drawGrid(width, height);
+        // 清空画布 - 白色背景
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.fillRect(0, 0, width, height);
         
         this.ctx.save();
         this.ctx.translate(width / 2 + this.transform.x, height / 2 + this.transform.y);
         this.ctx.scale(this.transform.scale, this.transform.scale);
         
-        // 绘制边
+        // 绘制边 - 黑色细线
         for (const edge of this.edges) {
             const source = this.nodes.find(n => n.id === edge.source);
             const target = this.nodes.find(n => n.id === edge.target);
             
             if (source && target) {
-                // 根据边的权重设置透明度
                 const weight = edge.weight || 1.0;
-                const opacity = Math.min(0.6, 0.2 + weight * 0.1);
+                const opacity = Math.min(0.3, 0.1 + weight * 0.05);
                 
                 this.ctx.beginPath();
                 this.ctx.moveTo(source.x, source.y);
                 this.ctx.lineTo(target.x, target.y);
-                this.ctx.strokeStyle = `rgba(150, 150, 180, ${opacity})`;
-                this.ctx.lineWidth = 1.5 + weight * 0.5;
+                this.ctx.strokeStyle = `rgba(0, 0, 0, ${opacity})`;
+                this.ctx.lineWidth = 0.8 + weight * 0.3;
                 this.ctx.stroke();
             }
         }
         
-        // 绘制节点
+        // 绘制节点 - 黑色小圆点+悬停光晕
         for (const node of this.nodes) {
-            const color = node.color || this.getNodeColor(node.type || 'Entity');
+            const color = node.color || this.getNodeColor();
+            const isHovered = this.hoveredNode && this.hoveredNode.id === node.id;
+            const baseRadius = node.baseRadius || 4;
             
-            // 节点光晕效果
-            this.ctx.beginPath();
-            this.ctx.arc(node.x, node.y, node.radius + 5, 0, Math.PI * 2);
-            this.ctx.fillStyle = `${color}33`; // 20% 透明度
-            this.ctx.fill();
-            
-            // 节点阴影
-            this.ctx.beginPath();
-            this.ctx.arc(node.x + 2, node.y + 2, node.radius, 0, Math.PI * 2);
-            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
-            this.ctx.fill();
-            
-            // 节点本体 - 使用渐变填充
-            const gradient = this.ctx.createRadialGradient(
-                node.x - node.radius * 0.3,
-                node.y - node.radius * 0.3,
-                0,
-                node.x,
-                node.y,
-                node.radius
-            );
-            gradient.addColorStop(0, this.lightenColor(color, 30));
-            gradient.addColorStop(1, color);
-            
-            this.ctx.beginPath();
-            this.ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
-            this.ctx.fillStyle = gradient;
-            this.ctx.fill();
-            
-            // 节点边框
-            this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-            this.ctx.lineWidth = 2;
-            this.ctx.stroke();
-            
-            // 节点标签
-            this.ctx.fillStyle = 'white';
-            this.ctx.font = 'bold 11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-            this.ctx.textAlign = 'center';
-            this.ctx.textBaseline = 'middle';
-            
-            // 截断长文本，处理null值
-            let label = node.label || node.name || node.id || 'Node';
-            if (label && label.length > 12) {
-                label = label.substring(0, 12) + '...';
+            // 悬停时的光晕效果
+            if (isHovered) {
+                // 外层光晕
+                this.ctx.beginPath();
+                this.ctx.arc(node.x, node.y, baseRadius + 10, 0, Math.PI * 2);
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+                this.ctx.fill();
+                
+                // 中层光晕
+                this.ctx.beginPath();
+                this.ctx.arc(node.x, node.y, baseRadius + 6, 0, Math.PI * 2);
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+                this.ctx.fill();
             }
             
-            // 添加文字阴影提高可读性
-            this.ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-            this.ctx.shadowBlur = 3;
-            this.ctx.fillText(label, node.x, node.y);
-            this.ctx.shadowBlur = 0;
+            // 节点本体 - 实心黑色小圆点
+            this.ctx.beginPath();
+            this.ctx.arc(node.x, node.y, baseRadius, 0, Math.PI * 2);
+            this.ctx.fillStyle = color;
+            this.ctx.fill();
+            
+            // 节点边框 - 灰色细边框
+            this.ctx.strokeStyle = 'rgba(100, 100, 100, 0.5)';
+            this.ctx.lineWidth = 1;
+            this.ctx.stroke();
+            
+            // 节点标签 - 只在悬停或节点较少时显示
+            if (isHovered || this.nodes.length < 50) {
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+                this.ctx.font = '12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'bottom';
+                
+                let label = node.label || node.name || node.id || 'Node';
+                if (label && label.length > 20) {
+                    label = label.substring(0, 20) + '...';
+                }
+                
+                // 标签位置在节点下方，带半透明背景
+                const textWidth = this.ctx.measureText(label).width;
+                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                this.ctx.fillRect(node.x - textWidth / 2 - 4, node.y - baseRadius - 18, textWidth + 8, 16);
+                
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+                this.ctx.fillText(label, node.x, node.y - baseRadius - 5);
+            }
         }
         
         this.ctx.restore();
@@ -3262,13 +3519,26 @@ class KnowledgeGraphVisualizer {
         const y = (e.clientY - rect.top - this.canvas.height / 2 - this.transform.y) / this.transform.scale;
         
         // 检查是否点击了节点
+        let clickedNode = null;
         for (const node of this.nodes) {
             const dist = Math.sqrt((x - node.x) ** 2 + (y - node.y) ** 2);
             if (dist < node.radius) {
-                this.isDragging = true;
-                this.draggedNode = node;
+                clickedNode = node;
                 break;
             }
+        }
+        
+        if (clickedNode) {
+            // 拖拽节点
+            this.isDragging = true;
+            this.draggedNode = clickedNode;
+            this.canvas.style.cursor = 'grabbing';
+        } else {
+            // 拖拽画布（平移）
+            this.isPanning = true;
+            this.lastMouseX = e.clientX;
+            this.lastMouseY = e.clientY;
+            this.canvas.style.cursor = 'grabbing';
         }
     }
     
@@ -3278,8 +3548,18 @@ class KnowledgeGraphVisualizer {
         const y = (e.clientY - rect.top - this.canvas.height / 2 - this.transform.y) / this.transform.scale;
         
         if (this.isDragging && this.draggedNode) {
+            // 拖拽节点
             this.draggedNode.x = x;
             this.draggedNode.y = y;
+            this.render();
+        } else if (this.isPanning) {
+            // 平移画布
+            const dx = e.clientX - this.lastMouseX;
+            const dy = e.clientY - this.lastMouseY;
+            this.transform.x += dx;
+            this.transform.y += dy;
+            this.lastMouseX = e.clientX;
+            this.lastMouseY = e.clientY;
             this.render();
         } else {
             // 检查悬停
@@ -3292,9 +3572,12 @@ class KnowledgeGraphVisualizer {
                 }
             }
             
-            if (hovered !== this.hoveredNode) {
-                this.hoveredNode = hovered;
-                this.canvas.style.cursor = hovered ? 'pointer' : 'grab';
+            // 总是更新鼠标样式（即使没有变化）
+            this.hoveredNode = hovered;
+            this.canvas.style.cursor = hovered ? 'pointer' : 'grab';
+            
+            if (hovered !== this.prevHoveredNode) {
+                this.prevHoveredNode = hovered;
                 this.render();
             }
         }
@@ -3303,13 +3586,33 @@ class KnowledgeGraphVisualizer {
     handleMouseUp() {
         this.isDragging = false;
         this.draggedNode = null;
+        this.isPanning = false;
+        this.canvas.style.cursor = 'grab';
     }
     
     handleWheel(e) {
         e.preventDefault();
+        
+        const rect = this.canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        
+        // 计算鼠标在画布坐标系中的位置
+        const canvasCenterX = this.canvas.width / 2;
+        const canvasCenterY = this.canvas.height / 2;
+        
+        const mouseWorldX = (mouseX - canvasCenterX - this.transform.x) / this.transform.scale;
+        const mouseWorldY = (mouseY - canvasCenterY - this.transform.y) / this.transform.scale;
+        
+        // 缩放
         const delta = e.deltaY > 0 ? 0.9 : 1.1;
-        this.transform.scale *= delta;
-        this.transform.scale = Math.max(0.1, Math.min(5, this.transform.scale));
+        const newScale = Math.max(0.1, Math.min(5, this.transform.scale * delta));
+        
+        // 调整平移，使鼠标位置保持不变
+        this.transform.x = mouseX - canvasCenterX - mouseWorldX * newScale;
+        this.transform.y = mouseY - canvasCenterY - mouseWorldY * newScale;
+        this.transform.scale = newScale;
+        
         this.render();
     }
     
@@ -3328,38 +3631,30 @@ class KnowledgeGraphVisualizer {
     }
 }
 
-// 初始化知识图谱功能 (类似 Obsidian)
+// 初始化知识图谱功能 (预览 + 全屏模态框)
 function initKnowledgeGraph() {
-    const kgCard = document.getElementById('kg-card');
-    const kgViewContainer = document.getElementById('kg-view-container');
-    const kgRefreshBtn = document.getElementById('kg-refresh-btn');
-    const kgCloseBtn = document.getElementById('kg-close-btn');
-    const kgTabs = document.querySelectorAll('.kg-tab');
+    const kgModal = document.getElementById('kg-modal');
+    const kgModalClose = document.getElementById('kg-modal-close');
+    const kgModalRefresh = document.getElementById('kg-modal-refresh');
+    const kgCanvasFullscreen = document.getElementById('kg-canvas-fullscreen');
     
-    if (!kgCard || !kgViewContainer) return;
+    let previewDocsVisualizer = null;
+    let previewEntitiesVisualizer = null;
+    let fullscreenVisualizer = null;
+    let currentModalType = null; // 'documents' or 'entities'
+    let cachedData = { documents: null, entities: null };
     
-    let visualizer = null;
-    let isKgViewActive = false;
-    let currentTabType = 'documents'; // 当前显示的图谱类型
-    
-    // 加载图谱数据
-    async function loadGraphData(type) {
+    // 加载预览图
+    async function loadPreview(type) {
         try {
-            // 显示加载状态
-            document.getElementById('kg-loading-overlay').style.display = 'flex';
-            document.getElementById('kg-canvas').style.display = 'none';
+            const canvasId = type === 'documents' ? 'kg-canvas-docs-preview' : 'kg-canvas-entities-preview';
+            const badgeId = type === 'documents' ? 'kg-docs-badge' : 'kg-entities-badge';
             
-            // 根据类型选择API端点
-            let apiUrl;
-            if (type === 'documents') {
-                apiUrl = `${apiBaseUrl}/api/v1/documents/knowledge-graph/documents?limit=100`;
-            } else if (type === 'entities') {
-                apiUrl = `${apiBaseUrl}/api/v1/documents/knowledge-graph/entities?limit=200`;
-            } else {
-                apiUrl = `${apiBaseUrl}/api/v1/documents/knowledge-graph/full?limit=150`;
-            }
+            console.log(`Loading ${type} preview, canvasId:`, canvasId);
             
-            console.log(`Loading ${type} graph from:`, apiUrl);
+            const apiUrl = type === 'documents' 
+                ? `${apiBaseUrl}/api/v1/documents/knowledge-graph/documents?limit=50`
+                : `${apiBaseUrl}/api/v1/documents/knowledge-graph/entities?limit=80`;
             
             const response = await fetch(apiUrl, {
                 headers: {
@@ -3367,112 +3662,172 @@ function initKnowledgeGraph() {
                 }
             });
             
-            if (!response.ok) {
-                throw new Error(`获取${type === 'documents' ? '文档' : type === 'entities' ? '实体' : ''}图谱失败 (${response.status})`);
-            }
+            if (!response.ok) throw new Error('加载失败');
             
             const data = await response.json();
-            console.log(`${type} graph data received:`, {
-                total_nodes: data.total_nodes,
-                total_edges: data.total_edges,
-                nodes_sample: data.nodes?.slice(0, 3)
-            });
+            console.log(`${type} preview data:`, { nodes: data.total_nodes, edges: data.total_edges });
+            cachedData[type] = data;
             
-            // 初始化可视化器
-            if (!visualizer) {
-                visualizer = new KnowledgeGraphVisualizer();
+            // 创建或更新预览可视化器
+            let visualizer;
+            if (type === 'documents') {
+                if (!previewDocsVisualizer) {
+                    previewDocsVisualizer = new KnowledgeGraphVisualizer(canvasId);
+                    previewDocsVisualizer.setInteractive(false); // 预览不可交互
+                    console.log('Created docs preview visualizer');
+                }
+                visualizer = previewDocsVisualizer;
+            } else {
+                if (!previewEntitiesVisualizer) {
+                    previewEntitiesVisualizer = new KnowledgeGraphVisualizer(canvasId);
+                    previewEntitiesVisualizer.setInteractive(false);
+                    console.log('Created entities preview visualizer');
+                }
+                visualizer = previewEntitiesVisualizer;
             }
             
             visualizer.loadData(data);
-            
-            // 等待容器渲染后调整画布大小
             setTimeout(() => {
                 visualizer.resize();
-                
-                // 隐藏加载，显示画布
-                document.getElementById('kg-loading-overlay').style.display = 'none';
-                document.getElementById('kg-canvas').style.display = 'block';
-                
-                // 更新统计信息
-                if (type === 'documents') {
-                    document.getElementById('kg-doc-count').textContent = data.total_nodes || 0;
-                    document.getElementById('kg-entity-count').textContent = '-';
-                    document.getElementById('kg-relation-count').textContent = data.total_edges || 0;
-                } else if (type === 'entities') {
-                    document.getElementById('kg-doc-count').textContent = '-';
-                    document.getElementById('kg-entity-count').textContent = data.total_nodes || 0;
-                    document.getElementById('kg-relation-count').textContent = data.total_edges || 0;
-                }
-                
-                // 开始渲染
                 visualizer.startAnimation();
+                console.log(`${type} preview rendered`);
+                
+                // 更新徽章
+                const badge = document.getElementById(badgeId);
+                if (badge) {
+                    badge.textContent = `${data.total_nodes || 0} 节点`;
+                }
             }, 100);
             
-            return true;
         } catch (error) {
-            console.error(`加载${type}图谱失败:`, error);
-            document.getElementById('kg-loading-overlay').innerHTML = `
-                <p style="color: #667eea;">❌ 加载失败: ${error.message}</p>
-                <p style="color: #6c757d; font-size: 14px; margin-top: 8px;">请确保Neo4j服务已启动并有数据</p>
-            `;
-            return false;
+            console.error(`加载${type}预览失败:`, error);
         }
     }
     
-    // 点击知识图谱卡片 - 在下方显示图谱视图
-    kgCard.addEventListener('click', async () => {
-        if (isKgViewActive) {
-            // 如果已经显示，滚动到图谱区域
-            kgViewContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            return;
+    // 打开全屏模态框
+    async function openModal(type) {
+        console.log('Opening modal for type:', type);
+        currentModalType = type;
+        kgModal.classList.add('active');
+        console.log('Modal active class added, classes:', kgModal.classList.toString());
+        
+        const titleEl = document.getElementById('kg-modal-title');
+        const loadingEl = document.getElementById('kg-modal-loading');
+        const nodeCountEl = document.getElementById('kg-modal-node-count');
+        const edgeCountEl = document.getElementById('kg-modal-edge-count');
+        
+        titleEl.textContent = type === 'documents' ? '📄 文档图谱' : '🔵 实体图谱';
+        loadingEl.style.display = 'flex';
+        kgCanvasFullscreen.style.display = 'none';
+        
+        // 使用缓存数据或重新加载
+        let data = cachedData[type];
+        if (!data) {
+            try {
+                const apiUrl = type === 'documents' 
+                    ? `${apiBaseUrl}/api/v1/documents/knowledge-graph/documents?limit=200`
+                    : `${apiBaseUrl}/api/v1/documents/knowledge-graph/entities?limit=300`;
+                
+                const response = await fetch(apiUrl, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error('加载失败');
+                data = await response.json();
+                cachedData[type] = data;
+            } catch (error) {
+                console.error('加载失败:', error);
+                loadingEl.innerHTML = `<p style="color: #999;">❌ 加载失败</p>`;
+                return;
+            }
         }
         
-        isKgViewActive = true;
-        currentTabType = 'documents'; // 默认显示文档图谱
+        // 创建全屏可视化器
+        if (!fullscreenVisualizer) {
+            fullscreenVisualizer = new KnowledgeGraphVisualizer('kg-canvas-fullscreen');
+            fullscreenVisualizer.setInteractive(true); // 确保启用交互
+            console.log('Created fullscreen visualizer with interactive mode');
+        }
         
-        // 显示图谱视图（不隐藏卡片网格）
-        kgViewContainer.style.display = 'flex';
+        fullscreenVisualizer.loadData(data);
         
-        // 加载文档图谱
-        await loadGraphData('documents');
-        
-        // 滚动到图谱区域
-        kgViewContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
+        setTimeout(() => {
+            fullscreenVisualizer.resize();
+            loadingEl.style.display = 'none';
+            kgCanvasFullscreen.style.display = 'block';
+            
+            // 更新统计
+            nodeCountEl.textContent = `节点: ${data.total_nodes || 0}`;
+            edgeCountEl.textContent = `关系: ${data.total_edges || 0}`;
+            
+            fullscreenVisualizer.startAnimation();
+        }, 100);
+    }
     
-    // 标签切换
-    kgTabs.forEach(tab => {
-        tab.addEventListener('click', async () => {
-            // 移除所有active类
-            kgTabs.forEach(t => t.classList.remove('active'));
-            // 添加当前active类
-            tab.classList.add('active');
-            
-            // 获取要切换的类型
-            const newType = tab.getAttribute('data-type');
-            
-            if (newType !== currentTabType) {
-                currentTabType = newType;
-                await loadGraphData(newType);
-            }
+    // 关闭模态框
+    function closeModal() {
+        kgModal.classList.remove('active');
+        if (fullscreenVisualizer) {
+            fullscreenVisualizer.stopAnimation();
+        }
+    }
+    
+    // 刷新当前模态框
+    async function refreshModal() {
+        if (!currentModalType) return;
+        cachedData[currentModalType] = null; // 清除缓存
+        await openModal(currentModalType);
+    }
+    
+    // 点击预览卡片打开模态框
+    const docsPreview = document.getElementById('kg-docs-preview');
+    const entitiesPreview = document.getElementById('kg-entities-preview');
+    
+    console.log('Setting up click handlers:', { docsPreview, entitiesPreview, kgModal });
+    
+    if (docsPreview) {
+        docsPreview.addEventListener('click', () => {
+            console.log('Docs preview clicked, opening modal...');
+            openModal('documents');
         });
-    });
+    }
+    
+    if (entitiesPreview) {
+        entitiesPreview.addEventListener('click', () => {
+            console.log('Entities preview clicked, opening modal...');
+            openModal('entities');
+        });
+    }
+    
+    // 关闭按钮
+    if (kgModalClose) {
+        kgModalClose.addEventListener('click', closeModal);
+    }
     
     // 刷新按钮
-    kgRefreshBtn.addEventListener('click', async () => {
-        if (!visualizer) return;
-        
-        // 重新加载当前类型的图谱
-        await loadGraphData(currentTabType);
-    });
+    if (kgModalRefresh) {
+        kgModalRefresh.addEventListener('click', refreshModal);
+    }
     
-    // 关闭按钮 - 隐藏图谱区域
-    kgCloseBtn.addEventListener('click', () => {
-        kgViewContainer.style.display = 'none';
-        isKgViewActive = false;
-        // 停止动画以节省资源
-        if (visualizer && visualizer.stopAnimation) {
-            visualizer.stopAnimation();
+    // 点击背景关闭
+    if (kgModal) {
+        kgModal.addEventListener('click', (e) => {
+            if (e.target === kgModal) closeModal();
+        });
+    }
+    
+    // ESC键关闭
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && kgModal.classList.contains('active')) {
+            closeModal();
         }
     });
+    
+    // 页面加载时加载预览
+    setTimeout(() => {
+        loadPreview('documents');
+        loadPreview('entities');
+    }, 500);
 }

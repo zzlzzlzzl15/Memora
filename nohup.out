@@ -1,0 +1,757 @@
+2026-06-12 22:14:53.618 | INFO     | app.core.sql:_create_engine_with_fallback:53 - 确保数据库存在: personal_knowledgebase
+2026-06-12 22:14:53.626 | INFO     | app.core.sql:_create_engine_with_fallback:76 - 数据库引擎已创建: mysql+pymysql://root:***@127.0.0.1:3306/personal_knowledgebase
+INFO:     Started server process [91145]
+INFO:     Waiting for application startup.
+2026-06-12 22:14:55.641 | INFO     | 应用启动：初始化数据库和Qdrant集合
+2026-06-12 22:14:55.655 | WARNING  | 确保MySQL数据库存在失败: (pymysql.err.OperationalError) (1045, "Access denied for user 'root'@'172.18.0.1' (using password: YES)")
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-12 22:14:55.673 | INFO     | 数据库表结构已初始化
+2026-06-12 22:14:55.683 | INFO     | 连接到 Qdrant 服务器 (gRPC): localhost:6334
+2026-06-12 22:14:55.693 | INFO     | 集合 'central_library' 已存在
+2026-06-12 22:14:55.698 | WARNING  | 检查/重建集合配置时出错: illegal request line
+2026-06-12 22:14:55.699 | INFO     | 集合 'central_library' 已准备就绪
+2026-06-12 22:14:55.700 | INFO     | 已启动定时清理过期会话任务
+2026-06-12 22:14:55.789 | INFO     | Neo4j 知识图谱连接成功: bolt://localhost:7687
+2026-06-12 22:14:55.840 | INFO     | Neo4j 知识图谱服务已就绪
+2026-06-12 22:14:55.841 | INFO     | 应用启动：初始化完成
+INFO:     Application startup complete.
+2026-06-12 22:14:55.841 | INFO     | 下次清理过期会话的时间: 2026-06-13 02:00:00, 等待 3.75 小时
+INFO:     Uvicorn running on http://0.0.0.0:8080 (Press CTRL+C to quit)
+2026-06-12 22:15:03.183 | INFO     | REQUEST start | GET /health | client=127.0.0.1 | ct=- | cl=- | user_id=- | username=-
+2026-06-12 22:15:03.184 | INFO     | REQUEST handler | GET /health | took=0ms
+2026-06-12 22:15:03.184 | INFO     | RESPONSE end | GET /health | status=200 | took=1ms | length=66
+INFO:     127.0.0.1:57725 - "GET /health HTTP/1.1" 200 OK
+2026-06-12 22:21:35.423 | INFO     | REQUEST start | POST /api/v1/documents/upload | client=127.0.0.1 | ct=multipart/form-data; boundary=2a0f22ba7c9c4b71a2c177635be907a2 | cl=678470 | user_id=- | username=-
+2026-06-12 22:21:35.442 | INFO     | Documents.upload: start title='大模型会对公司带来哪些改变（如产品、岗位、核心竞争力等）--谢洁' filename='一_大模型会对公司带来哪些改变_如产品_岗位_核心竞争力等_--谢洁---de8499f8-cff8-41f5-a095-5c10a3a921ea.pdf' user_id='1'
+2026-06-12 22:21:35.443 | INFO     | 解析缓存目录: /Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/uploads/.parse_cache
+2026-06-12 22:21:35.443 | INFO     | Documents.upload: file read bytes=677994
+2026-06-12 22:21:35.443 | INFO     | Documents.upload: detected type=DocumentType.PDF
+2026-06-12 22:21:35.444 | INFO     | InMemoryDocumentStore初始化完成（支持并发安全和多维索引）
+2026-06-12 22:21:35.457 | INFO     | 成功加载OpenAI嵌入模型: openai/text-embedding-v4 (base_url=https://dashscope.aliyuncs.com/compatible-mode/v1)
+2026-06-12 22:21:35.604 | INFO     | 成功加载稀疏嵌入模型: Qdrant/bm42-all-minilm-l6-v2-attentions
+2026-06-12 22:21:35.604 | INFO     | Rerank服务初始化完成，使用模型: qwen3-rerank
+2026-06-12 22:21:35.605 | INFO     | 文件保存成功: /Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/uploads/1/5705add2-a757-4a1e-9a3c-75997521a38b.pdf
+2026-06-12 22:21:35.608 | INFO     | 使用传统解析器: /Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/uploads/1/5705add2-a757-4a1e-9a3c-75997521a38b.pdf (type=DocumentType.PDF)
+2026-06-12 22:21:35.756 | INFO     | 解析结果已缓存: /Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/uploads/1/5705add2-a757-4a1e-9a3c-75997521a38b.pdf (key=242e9f80...)
+2026-06-12 22:21:35.757 | INFO     | 文档元数据已保存: /Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/uploads/1/0240af32-4c69-47e4-a00f-80c8b53ff901.json
+2026-06-12 22:21:35.773 | ERROR    | 同步文档到数据库失败: (pymysql.err.OperationalError) (1054, "Unknown column 'documents.progress' in 'field list'")
+[SQL: SELECT documents.doc_id AS documents_doc_id, documents.user_id AS documents_user_id, documents.title AS documents_title, documents.filename AS documents_filename, documents.file_path AS documents_file_path, documents.file_size AS documents_file_size, documents.doc_type AS documents_doc_type, documents.content AS documents_content, documents.status AS documents_status, documents.progress AS documents_progress, documents.error_message AS documents_error_message, documents.vector_id AS documents_vector_id, documents.is_deleted AS documents_is_deleted, documents.deleted_at AS documents_deleted_at, documents.tags AS documents_tags, documents.doc_metadata AS documents_doc_metadata, documents.created_at AS documents_created_at, documents.updated_at AS documents_updated_at 
+FROM documents 
+WHERE documents.doc_id = %(doc_id_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'doc_id_1': '0240af32-4c69-47e4-a00f-80c8b53ff901', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-12 22:21:35.775 | INFO     | 文档元数据已保存: /Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/uploads/1/0240af32-4c69-47e4-a00f-80c8b53ff901.json
+2026-06-12 22:21:35.777 | ERROR    | 同步文档到数据库失败: (pymysql.err.OperationalError) (1054, "Unknown column 'documents.progress' in 'field list'")
+[SQL: SELECT documents.doc_id AS documents_doc_id, documents.user_id AS documents_user_id, documents.title AS documents_title, documents.filename AS documents_filename, documents.file_path AS documents_file_path, documents.file_size AS documents_file_size, documents.doc_type AS documents_doc_type, documents.content AS documents_content, documents.status AS documents_status, documents.progress AS documents_progress, documents.error_message AS documents_error_message, documents.vector_id AS documents_vector_id, documents.is_deleted AS documents_is_deleted, documents.deleted_at AS documents_deleted_at, documents.tags AS documents_tags, documents.doc_metadata AS documents_doc_metadata, documents.created_at AS documents_created_at, documents.updated_at AS documents_updated_at 
+FROM documents 
+WHERE documents.doc_id = %(doc_id_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'doc_id_1': '0240af32-4c69-47e4-a00f-80c8b53ff901', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-12 22:21:35.778 | INFO     | 解析缓存命中: /Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/uploads/1/5705add2-a757-4a1e-9a3c-75997521a38b.pdf (key=242e9f80...)
+2026-06-12 22:21:35.778 | INFO     | 结构化解析缓存命中: /Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/uploads/1/5705add2-a757-4a1e-9a3c-75997521a38b.pdf
+2026-06-12 22:21:35.779 | INFO     | 文档 0240af32-4c69-47e4-a00f-80c8b53ff901 使用LangChain分割成 8 个块（含上下文信息）
+2026-06-12 22:21:35.779 | INFO     | 多模态并发处理完成: doc=0240af32-4c69-47e4-a00f-80c8b53ff901, content_items=1, multimodal=0(并发=2), chunks=8
+2026-06-12 22:21:35.780 | INFO     | 文档元数据已保存: /Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/uploads/1/0240af32-4c69-47e4-a00f-80c8b53ff901.json
+2026-06-12 22:21:35.781 | ERROR    | 同步文档到数据库失败: (pymysql.err.OperationalError) (1054, "Unknown column 'documents.progress' in 'field list'")
+[SQL: SELECT documents.doc_id AS documents_doc_id, documents.user_id AS documents_user_id, documents.title AS documents_title, documents.filename AS documents_filename, documents.file_path AS documents_file_path, documents.file_size AS documents_file_size, documents.doc_type AS documents_doc_type, documents.content AS documents_content, documents.status AS documents_status, documents.progress AS documents_progress, documents.error_message AS documents_error_message, documents.vector_id AS documents_vector_id, documents.is_deleted AS documents_is_deleted, documents.deleted_at AS documents_deleted_at, documents.tags AS documents_tags, documents.doc_metadata AS documents_doc_metadata, documents.created_at AS documents_created_at, documents.updated_at AS documents_updated_at 
+FROM documents 
+WHERE documents.doc_id = %(doc_id_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'doc_id_1': '0240af32-4c69-47e4-a00f-80c8b53ff901', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-12 22:21:36.432 | INFO     | 成功添加 8 个文档块到向量数据库
+2026-06-12 22:21:36.731 | WARNING  | 实体提取失败: '\n  "entities"'
+2026-06-12 22:21:36.731 | INFO     | 实体提取完成: 0 个实体, 0 个关系
+2026-06-12 22:21:36.731 | WARNING  | 实体提取失败: '\n  "entities"'
+2026-06-12 22:21:36.732 | INFO     | 实体提取完成: 0 个实体, 0 个关系
+2026-06-12 22:21:36.732 | WARNING  | 实体提取失败: '\n  "entities"'
+2026-06-12 22:21:36.732 | INFO     | 实体提取完成: 0 个实体, 0 个关系
+2026-06-12 22:21:36.733 | WARNING  | 实体提取失败: '\n  "entities"'
+2026-06-12 22:21:36.733 | INFO     | 实体提取完成: 0 个实体, 0 个关系
+2026-06-12 22:21:36.733 | WARNING  | 实体提取失败: '\n  "entities"'
+2026-06-12 22:21:36.733 | INFO     | 实体提取完成: 0 个实体, 0 个关系
+2026-06-12 22:21:36.734 | WARNING  | 实体提取失败: '\n  "entities"'
+2026-06-12 22:21:36.734 | INFO     | 实体提取完成: 0 个实体, 0 个关系
+2026-06-12 22:21:36.734 | WARNING  | 实体提取失败: '\n  "entities"'
+2026-06-12 22:21:36.734 | INFO     | 实体提取完成: 0 个实体, 0 个关系
+2026-06-12 22:21:36.735 | WARNING  | 实体提取失败: '\n  "entities"'
+2026-06-12 22:21:36.735 | INFO     | 实体提取完成: 0 个实体, 0 个关系
+2026-06-12 22:21:36.735 | INFO     | 知识图谱并发构建完成: doc=0240af32-4c69-47e4-a00f-80c8b53ff901, chunks=8(并发=3), entities=0, relations=0
+2026-06-12 22:21:36.736 | INFO     | 文档元数据已保存: /Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/uploads/1/0240af32-4c69-47e4-a00f-80c8b53ff901.json
+2026-06-12 22:21:36.739 | ERROR    | 同步文档到数据库失败: (pymysql.err.OperationalError) (1054, "Unknown column 'documents.progress' in 'field list'")
+[SQL: SELECT documents.doc_id AS documents_doc_id, documents.user_id AS documents_user_id, documents.title AS documents_title, documents.filename AS documents_filename, documents.file_path AS documents_file_path, documents.file_size AS documents_file_size, documents.doc_type AS documents_doc_type, documents.content AS documents_content, documents.status AS documents_status, documents.progress AS documents_progress, documents.error_message AS documents_error_message, documents.vector_id AS documents_vector_id, documents.is_deleted AS documents_is_deleted, documents.deleted_at AS documents_deleted_at, documents.tags AS documents_tags, documents.doc_metadata AS documents_doc_metadata, documents.created_at AS documents_created_at, documents.updated_at AS documents_updated_at 
+FROM documents 
+WHERE documents.doc_id = %(doc_id_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'doc_id_1': '0240af32-4c69-47e4-a00f-80c8b53ff901', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-12 22:21:36.740 | INFO     | 文档 0240af32-4c69-47e4-a00f-80c8b53ff901 处理完成，共 8 个块
+2026-06-12 22:21:36.741 | INFO     | 已清除用户 %s 的 %d 条查询缓存
+2026-06-12 22:21:36.742 | INFO     | Documents.upload: success document_id='0240af32-4c69-47e4-a00f-80c8b53ff901'
+2026-06-12 22:21:36.743 | INFO     | REQUEST handler | POST /api/v1/documents/upload | took=1317ms
+INFO:     127.0.0.1:57942 - "POST /api/v1/documents/upload HTTP/1.1" 200 OK
+2026-06-12 22:21:36.744 | INFO     | RESPONSE end | POST /api/v1/documents/upload | status=200 | took=1320ms | length=8159
+2026-06-12 22:21:51.382 | INFO     | REQUEST start | POST /api/v1/conversations/session/close | client=127.0.0.1 | ct=application/json | cl=53 | user_id=1 | username=admin
+2026-06-12 22:21:51.385 | INFO     | REQUEST start | GET / | client=127.0.0.1 | ct=- | cl=- | user_id=- | username=-
+2026-06-12 22:21:51.392 | INFO     | REQUEST handler | GET / | took=6ms
+2026-06-12 22:21:51.392 | INFO     | RESPONSE end | GET / | status=200 | took=7ms | length=25197
+INFO:     127.0.0.1:57952 - "GET / HTTP/1.1" 200 OK
+2026-06-12 22:21:51.407 | INFO     | REQUEST handler | POST /api/v1/conversations/session/close | took=24ms
+2026-06-12 22:21:51.408 | INFO     | RESPONSE end | POST /api/v1/conversations/session/close | status=200 | took=25ms | length=15
+INFO:     127.0.0.1:57951 - "POST /api/v1/conversations/session/close HTTP/1.1" 200 OK
+2026-06-12 22:21:51.438 | INFO     | REQUEST start | GET /api/v1/documents/ | client=127.0.0.1 | ct=- | cl=- | user_id=1 | username=admin
+2026-06-12 22:21:51.440 | INFO     | Documents.list: start skip=0 limit=20 user_id='1'
+2026-06-12 22:21:51.442 | INFO     | Documents.list: success count=4 total=4
+2026-06-12 22:21:51.443 | INFO     | REQUEST handler | GET /api/v1/documents/ | took=5ms
+2026-06-12 22:21:51.443 | INFO     | RESPONSE end | GET /api/v1/documents/ | status=200 | took=5ms | length=15249
+INFO:     127.0.0.1:57951 - "GET /api/v1/documents/ HTTP/1.1" 200 OK
+2026-06-12 22:21:52.512 | INFO     | REQUEST start | GET /api/v1/documents/0240af32-4c69-47e4-a00f-80c8b53ff901 | client=127.0.0.1 | ct=- | cl=- | user_id=1 | username=admin
+2026-06-12 22:21:52.514 | INFO     | Documents.get: start document_id='0240af32-4c69-47e4-a00f-80c8b53ff901' user_id='1'
+2026-06-12 22:21:52.515 | INFO     | REQUEST handler | GET /api/v1/documents/0240af32-4c69-47e4-a00f-80c8b53ff901 | took=2ms
+INFO:     127.0.0.1:57951 - "GET /api/v1/documents/0240af32-4c69-47e4-a00f-80c8b53ff901 HTTP/1.1" 200 OK
+2026-06-12 22:21:52.515 | INFO     | RESPONSE end | GET /api/v1/documents/0240af32-4c69-47e4-a00f-80c8b53ff901 | status=200 | took=3ms | length=8159
+2026-06-12 22:22:17.880 | INFO     | REQUEST start | GET /api/v1/conversations/history?mode=query&limit=100 | client=127.0.0.1 | ct=- | cl=- | user_id=1 | username=admin
+2026-06-12 22:22:17.917 | INFO     | REQUEST handler | GET /api/v1/conversations/history | took=35ms
+INFO:     127.0.0.1:57961 - "GET /api/v1/conversations/history?mode=query&limit=100 HTTP/1.1" 200 OK
+2026-06-12 22:22:17.917 | INFO     | RESPONSE end | GET /api/v1/conversations/history | status=200 | took=36ms | length=281
+2026-06-12 22:22:17.920 | INFO     | REQUEST start | POST /api/v1/conversations/message | client=127.0.0.1 | ct=application/json | cl=140 | user_id=1 | username=admin
+2026-06-12 22:22:17.940 | INFO     | REQUEST handler | POST /api/v1/conversations/message | took=19ms
+INFO:     127.0.0.1:57961 - "POST /api/v1/conversations/message HTTP/1.1" 200 OK
+2026-06-12 22:22:17.940 | INFO     | RESPONSE end | POST /api/v1/conversations/message | status=200 | took=20ms | length=247
+2026-06-12 22:22:17.942 | INFO     | REQUEST start | POST /api/v1/documents/search/answer/stream | client=127.0.0.1 | ct=application/json | cl=87 | user_id=1 | username=admin
+2026-06-12 22:22:17.944 | INFO     | Documents.search_answer_stream: start query_len=15 user_id='1'
+2026-06-12 22:22:17.970 | INFO     | 搜索查询 '知识库构建的文档构建流程是什么' 返回 7 个初始结果
+2026-06-12 22:22:17.970 | INFO     | 启用Rerank，候选数: 7, 目标返回Top 5
+2026-06-12 22:22:18.200 | INFO     | Rerank完成: 从7个文档中选出top 5个
+2026-06-12 22:22:18.200 | INFO     | Rerank完成，返回 5 个结果
+Received notification from DBMS server: <GqlStatusObject gql_status='01N52', status_description='warn: property key does not exist. The property `description` does not exist. Verify that the spelling is correct.', position=<SummaryInputPosition line=7, column=30, offset=330>, raw_classification='UNRECOGNIZED', classification=<NotificationClassification.UNRECOGNIZED: 'UNRECOGNIZED'>, raw_severity='WARNING', severity=<NotificationSeverity.WARNING: 'WARNING'>, diagnostic_record={'_classification': 'UNRECOGNIZED', '_severity': 'WARNING', '_position': {'offset': 330, 'line': 7, 'column': 30}, 'OPERATION': '', 'OPERATION_CODE': '0', 'CURRENT_SCHEMA': '/'}> for query: '\n                    MATCH (e:Entity)-[r]-(related:Entity)\n                    WHERE e.entity_name IN $names AND e.user_id = $user_id\n                    RETURN e.entity_id AS entity_id,\n                           e.entity_name AS entity_name,\n                           e.entity_type AS entity_type,\n                           e.description AS description,\n                           related.entity_name AS rel_entity_name,\n                           related.entity_type AS rel_entity_type,\n                           related.description AS rel_description,\n                           type(r) AS rel_type,\n                           r.relation_type AS relation_type,\n                           r.description AS rel_description_text\n                    '
+Received notification from DBMS server: <GqlStatusObject gql_status='01N52', status_description='warn: property key does not exist. The property `description` does not exist. Verify that the spelling is correct.', position=<SummaryInputPosition line=10, column=36, offset=527>, raw_classification='UNRECOGNIZED', classification=<NotificationClassification.UNRECOGNIZED: 'UNRECOGNIZED'>, raw_severity='WARNING', severity=<NotificationSeverity.WARNING: 'WARNING'>, diagnostic_record={'_classification': 'UNRECOGNIZED', '_severity': 'WARNING', '_position': {'offset': 527, 'line': 10, 'column': 36}, 'OPERATION': '', 'OPERATION_CODE': '0', 'CURRENT_SCHEMA': '/'}> for query: '\n                    MATCH (e:Entity)-[r]-(related:Entity)\n                    WHERE e.entity_name IN $names AND e.user_id = $user_id\n                    RETURN e.entity_id AS entity_id,\n                           e.entity_name AS entity_name,\n                           e.entity_type AS entity_type,\n                           e.description AS description,\n                           related.entity_name AS rel_entity_name,\n                           related.entity_type AS rel_entity_type,\n                           related.description AS rel_description,\n                           type(r) AS rel_type,\n                           r.relation_type AS relation_type,\n                           r.description AS rel_description_text\n                    '
+Received notification from DBMS server: <GqlStatusObject gql_status='01N52', status_description='warn: property key does not exist. The property `relation_type` does not exist. Verify that the spelling is correct.', position=<SummaryInputPosition line=12, column=30, offset=636>, raw_classification='UNRECOGNIZED', classification=<NotificationClassification.UNRECOGNIZED: 'UNRECOGNIZED'>, raw_severity='WARNING', severity=<NotificationSeverity.WARNING: 'WARNING'>, diagnostic_record={'_classification': 'UNRECOGNIZED', '_severity': 'WARNING', '_position': {'offset': 636, 'line': 12, 'column': 30}, 'OPERATION': '', 'OPERATION_CODE': '0', 'CURRENT_SCHEMA': '/'}> for query: '\n                    MATCH (e:Entity)-[r]-(related:Entity)\n                    WHERE e.entity_name IN $names AND e.user_id = $user_id\n                    RETURN e.entity_id AS entity_id,\n                           e.entity_name AS entity_name,\n                           e.entity_type AS entity_type,\n                           e.description AS description,\n                           related.entity_name AS rel_entity_name,\n                           related.entity_type AS rel_entity_type,\n                           related.description AS rel_description,\n                           type(r) AS rel_type,\n                           r.relation_type AS relation_type,\n                           r.description AS rel_description_text\n                    '
+Received notification from DBMS server: <GqlStatusObject gql_status='01N52', status_description='warn: property key does not exist. The property `description` does not exist. Verify that the spelling is correct.', position=<SummaryInputPosition line=13, column=30, offset=697>, raw_classification='UNRECOGNIZED', classification=<NotificationClassification.UNRECOGNIZED: 'UNRECOGNIZED'>, raw_severity='WARNING', severity=<NotificationSeverity.WARNING: 'WARNING'>, diagnostic_record={'_classification': 'UNRECOGNIZED', '_severity': 'WARNING', '_position': {'offset': 697, 'line': 13, 'column': 30}, 'OPERATION': '', 'OPERATION_CODE': '0', 'CURRENT_SCHEMA': '/'}> for query: '\n                    MATCH (e:Entity)-[r]-(related:Entity)\n                    WHERE e.entity_name IN $names AND e.user_id = $user_id\n                    RETURN e.entity_id AS entity_id,\n                           e.entity_name AS entity_name,\n                           e.entity_type AS entity_type,\n                           e.description AS description,\n                           related.entity_name AS rel_entity_name,\n                           related.entity_type AS rel_entity_type,\n                           related.description AS rel_description,\n                           type(r) AS rel_type,\n                           r.relation_type AS relation_type,\n                           r.description AS rel_description_text\n                    '
+2026-06-12 22:22:18.470 | ERROR    | 获取全局上下文失败: {neo4j_code: Neo.ClientError.Statement.SyntaxError} {message: Invalid input 'DISTINCT': expected an expression, 'FOREACH', 'ORDER BY', 'CALL', 'CREATE', 'LOAD CSV', 'DELETE', 'DETACH', 'FINISH', 'INSERT', 'LIMIT', 'MATCH', 'MERGE', 'NODETACH', 'OFFSET', 'OPTIONAL', 'REMOVE', 'RETURN', 'SET', 'SKIP', 'UNION', 'UNWIND', 'USE', 'WITH' or <EOF> (line 4, column 21 (offset: 159))
+"                    DISTINCT"
+                     ^} {gql_status: 50N42} {gql_status_description: error: general processing exception - unexpected error. Unexpected error has occurred. See debug log for details.}
+2026-06-12 22:22:18.471 | INFO     | 融合完成: 模式=hybrid, 候选=5, 去重后=5, 上下文长度=2085 字符
+2026-06-12 22:22:18.471 | INFO     | 知识图谱融合完成: 模式=hybrid, 上下文长度=2085
+2026-06-12 22:22:18.475 | INFO     | REQUEST handler | POST /api/v1/documents/search/answer/stream | took=531ms
+INFO:     127.0.0.1:57961 - "POST /api/v1/documents/search/answer/stream HTTP/1.1" 200 OK
+2026-06-12 22:22:18.475 | INFO     | RESPONSE end | POST /api/v1/documents/search/answer/stream | status=200 | took=532ms | length=-
+2026-06-12 22:22:20.220 | INFO     | [stream-final] query=知识库构建的文档构建流程是什么
+知识库构建的文档构建流程包括四个关键步骤：  
+1. 文档的积累和格式标准化处理；  
+2. 文档的分级分类和标签管理；  
+3. 文档的向量化和知识抽取；  
+4. 文档快速检索。
+2026-06-12 22:22:20.225 | INFO     | REQUEST start | POST /api/v1/conversations/message | client=127.0.0.1 | ct=application/json | cl=323 | user_id=1 | username=admin
+2026-06-12 22:22:20.252 | INFO     | REQUEST handler | POST /api/v1/conversations/message | took=27ms
+INFO:     127.0.0.1:57961 - "POST /api/v1/conversations/message HTTP/1.1" 200 OK
+2026-06-12 22:22:20.253 | INFO     | RESPONSE end | POST /api/v1/conversations/message | status=200 | took=28ms | length=430
+2026-06-13 01:59:59.883 | INFO     | 开始清理过期会话...
+2026-06-13 01:59:59.927 | INFO     | 清理过期会话完成，共删除 0 个会话
+2026-06-13 01:59:59.928 | INFO     | 下次清理过期会话的时间: 2026-06-13 02:00:00, 等待 0.00 小时
+2026-06-13 02:00:00.002 | INFO     | 开始清理过期会话...
+2026-06-13 02:00:00.009 | INFO     | 清理过期会话完成，共删除 0 个会话
+2026-06-13 02:00:00.009 | INFO     | 下次清理过期会话的时间: 2026-06-14 02:00:00, 等待 24.00 小时
+2026-06-13 20:13:19.610 | INFO     | REQUEST start | POST /api/v1/conversations/session/close | client=127.0.0.1 | ct=application/json | cl=53 | user_id=1 | username=admin
+2026-06-13 20:13:19.631 | ERROR    | REQUEST error | POST /api/v1/conversations/session/close | took=21ms | error=OperationalError: (pymysql.err.OperationalError) (2003, "Can't connect to MySQL server on '127.0.0.1' ([Errno 61] Connection refused)")
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+[33m[1mTraceback (most recent call last):[0m
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/pymysql/connections.py", line 644, in connect
+    sock = socket.create_connection(
+  File "[32m/opt/homebrew/Cellar/python@3.11/3.11.15/Frameworks/Python.framework/Versions/3.11/lib/python3.11/[0m[32m[1msocket.py[0m", line [33m863[0m, in [35mcreate_connection[0m
+    [35m[1mraise[0m [1mexceptions[0m[1m[[0m[34m[1m0[0m[1m][0m
+  File "[32m/opt/homebrew/Cellar/python@3.11/3.11.15/Frameworks/Python.framework/Versions/3.11/lib/python3.11/[0m[32m[1msocket.py[0m", line [33m848[0m, in [35mcreate_connection[0m
+    [1msock[0m[35m[1m.[0m[1mconnect[0m[1m([0m[1msa[0m[1m)[0m
+[31m[1mConnectionRefusedError[0m:[1m [Errno 61] Connection refused[0m
+
+[1mDuring handling of the above exception, another exception occurred:[0m
+
+[33m[1mTraceback (most recent call last):[0m
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 145, in __init__
+    self._dbapi_connection = engine.raw_connection()
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3303, in raw_connection
+    return self.pool.connect()
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 449, in connect
+    return _ConnectionFairy._checkout(self)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 1263, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 717, in checkout
+    with util.safe_reraise():
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 715, in checkout
+    dbapi_connection = rec.get_connection()
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 866, in get_connection
+    self.__connect()
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/create.py", line 643, in connect
+    return dialect.connect(*cargs, **cparams)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 616, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/pymysql/connections.py", line 358, in __init__
+    self.connect()
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/pymysql/connections.py", line 711, in connect
+    raise exc
+[31m[1mpymysql.err.OperationalError[0m:[1m (2003, "Can't connect to MySQL server on '127.0.0.1' ([Errno 61] Connection refused)")[0m
+
+[1mThe above exception was the direct cause of the following exception:[0m
+
+[33m[1mTraceback (most recent call last):[0m
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/uvicorn/__main__.py", line 4, in <module>
+    uvicorn.main()
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/click/core.py", line 1485, in __call__
+    return self.main(*args, **kwargs)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/click/core.py", line 1406, in main
+    rv = self.invoke(ctx)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/click/core.py", line 1269, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/click/core.py", line 824, in invoke
+    return callback(*args, **kwargs)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/uvicorn/main.py", line 409, in main
+    run(
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/uvicorn/main.py", line 575, in run
+    server.run()
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/uvicorn/server.py", line 62, in run
+    return asyncio.run(self.serve(sockets=sockets))
+  File "[32m/opt/homebrew/Cellar/python@3.11/3.11.15/Frameworks/Python.framework/Versions/3.11/lib/python3.11/asyncio/[0m[32m[1mrunners.py[0m", line [33m190[0m, in [35mrun[0m
+    [35m[1mreturn[0m [1mrunner[0m[35m[1m.[0m[1mrun[0m[1m([0m[1mmain[0m[1m)[0m
+  File "[32m/opt/homebrew/Cellar/python@3.11/3.11.15/Frameworks/Python.framework/Versions/3.11/lib/python3.11/asyncio/[0m[32m[1mrunners.py[0m", line [33m118[0m, in [35mrun[0m
+    [35m[1mreturn[0m [1mself[0m[35m[1m.[0m[1m_loop[0m[35m[1m.[0m[1mrun_until_complete[0m[1m([0m[1mtask[0m[1m)[0m
+  File "[32m/opt/homebrew/Cellar/python@3.11/3.11.15/Frameworks/Python.framework/Versions/3.11/lib/python3.11/asyncio/[0m[32m[1mbase_events.py[0m", line [33m641[0m, in [35mrun_until_complete[0m
+    [1mself[0m[35m[1m.[0m[1mrun_forever[0m[1m([0m[1m)[0m
+  File "[32m/opt/homebrew/Cellar/python@3.11/3.11.15/Frameworks/Python.framework/Versions/3.11/lib/python3.11/asyncio/[0m[32m[1mbase_events.py[0m", line [33m608[0m, in [35mrun_forever[0m
+    [1mself[0m[35m[1m.[0m[1m_run_once[0m[1m([0m[1m)[0m
+  File "[32m/opt/homebrew/Cellar/python@3.11/3.11.15/Frameworks/Python.framework/Versions/3.11/lib/python3.11/asyncio/[0m[32m[1mbase_events.py[0m", line [33m1936[0m, in [35m_run_once[0m
+    [1mhandle[0m[35m[1m.[0m[1m_run[0m[1m([0m[1m)[0m
+  File "[32m/opt/homebrew/Cellar/python@3.11/3.11.15/Frameworks/Python.framework/Versions/3.11/lib/python3.11/asyncio/[0m[32m[1mevents.py[0m", line [33m84[0m, in [35m_run[0m
+    [1mself[0m[35m[1m.[0m[1m_context[0m[35m[1m.[0m[1mrun[0m[1m([0m[1mself[0m[35m[1m.[0m[1m_callback[0m[1m,[0m [35m[1m*[0m[1mself[0m[35m[1m.[0m[1m_args[0m[1m)[0m
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/uvicorn/protocols/http/h11_impl.py", line 408, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/uvicorn/middleware/proxy_headers.py", line 69, in __call__
+    return await self.app(scope, receive, send)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/fastapi/applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/applications.py", line 123, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/middleware/trustedhost.py", line 34, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/middleware/cors.py", line 91, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/middleware/cors.py", line 146, in simple_response
+    await self.app(scope, receive, send)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/middleware/base.py", line 191, in __call__
+    response = await self.dispatch_func(request, call_next)
+> File "[32m/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/app/core/[0m[32m[1mlogging.py[0m", line [33m140[0m, in [35mlogging_middleware[0m
+    [1mresponse[0m [35m[1m=[0m [35m[1mawait[0m [1mcall_next[0m[1m([0m[1mrequest[0m[1m)[0m
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/middleware/base.py", line 165, in call_next
+    raise app_exc
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/middleware/base.py", line 151, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/_exception_handler.py", line 64, in wrapped_app
+    raise exc
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/routing.py", line 758, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/routing.py", line 778, in app
+    await route.handle(scope, receive, send)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/routing.py", line 299, in handle
+    await self.app(scope, receive, send)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/routing.py", line 79, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/_exception_handler.py", line 64, in wrapped_app
+    raise exc
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/routing.py", line 74, in app
+    response = await func(request)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/fastapi/routing.py", line 278, in app
+    raw_response = await run_endpoint_function(
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/fastapi/routing.py", line 193, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/concurrency.py", line 42, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func, *args)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/anyio/to_thread.py", line 63, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 2518, in run_sync_in_worker_thread
+    return await future
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 1002, in run
+    result = context.run(func, *args)
+  File "[32m/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/app/api/[0m[32m[1mconversations.py[0m", line [33m41[0m, in [35mclose_session[0m
+    [1mok[0m [35m[1m=[0m [1msvc[0m[35m[1m.[0m[1mclose_session[0m[1m([0m[1mreq[0m[35m[1m.[0m[1msession_id[0m[1m)[0m
+  File "[32m/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/app/services/[0m[32m[1mconversation_service.py[0m", line [33m285[0m, in [35mclose_session[0m
+    [35m[1mreturn[0m [1mself[0m[35m[1m.[0m[1mstore[0m[35m[1m.[0m[1mclose_session[0m[1m([0m[1msession_id[0m[1m)[0m
+  File "[32m/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/app/services/[0m[32m[1mconversation_service.py[0m", line [33m73[0m, in [35mclose_session[0m
+    [1morm[0m [35m[1m=[0m [1mdb[0m[35m[1m.[0m[1mexecute[0m[1m([0m
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2306, in execute
+    return self._execute_internal(
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2181, in _execute_internal
+    conn = self._connection_for_bind(bind)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2050, in _connection_for_bind
+    return trans._connection_for_bind(engine, execution_options)
+  File "<string>", line 2, in _connection_for_bind
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 1144, in _connection_for_bind
+    conn = bind.connect()
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3279, in connect
+    return self._connection_cls(self)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 147, in __init__
+    Connection._handle_dbapi_exception_noconnection(
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2443, in _handle_dbapi_exception_noconnection
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 145, in __init__
+    self._dbapi_connection = engine.raw_connection()
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3303, in raw_connection
+    return self.pool.connect()
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 449, in connect
+    return _ConnectionFairy._checkout(self)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 1263, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 717, in checkout
+    with util.safe_reraise():
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 715, in checkout
+    dbapi_connection = rec.get_connection()
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 866, in get_connection
+    self.__connect()
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/create.py", line 643, in connect
+    return dialect.connect(*cargs, **cparams)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 616, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/pymysql/connections.py", line 358, in __init__
+    self.connect()
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/pymysql/connections.py", line 711, in connect
+    raise exc
+[31m[1msqlalchemy.exc.OperationalError[0m:[1m (pymysql.err.OperationalError) (2003, "Can't connect to MySQL server on '127.0.0.1' ([Errno 61] Connection refused)")
+(Background on this error at: https://sqlalche.me/e/20/e3q8)[0m
+2026-06-13 20:13:19.650 | ERROR    | UNHANDLED exception | POST /api/v1/conversations/session/close | error=OperationalError: (pymysql.err.OperationalError) (2003, "Can't connect to MySQL server on '127.0.0.1' ([Errno 61] Connection refused)")
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+[33m[1mTraceback (most recent call last):[0m
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/pymysql/connections.py", line 644, in connect
+    sock = socket.create_connection(
+  File "[32m/opt/homebrew/Cellar/python@3.11/3.11.15/Frameworks/Python.framework/Versions/3.11/lib/python3.11/[0m[32m[1msocket.py[0m", line [33m863[0m, in [35mcreate_connection[0m
+    [35m[1mraise[0m [1mexceptions[0m[1m[[0m[34m[1m0[0m[1m][0m
+  File "[32m/opt/homebrew/Cellar/python@3.11/3.11.15/Frameworks/Python.framework/Versions/3.11/lib/python3.11/[0m[32m[1msocket.py[0m", line [33m848[0m, in [35mcreate_connection[0m
+    [1msock[0m[35m[1m.[0m[1mconnect[0m[1m([0m[1msa[0m[1m)[0m
+[31m[1mConnectionRefusedError[0m:[1m [Errno 61] Connection refused[0m
+
+[1mDuring handling of the above exception, another exception occurred:[0m
+
+[33m[1mTraceback (most recent call last):[0m
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 145, in __init__
+    self._dbapi_connection = engine.raw_connection()
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3303, in raw_connection
+    return self.pool.connect()
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 449, in connect
+    return _ConnectionFairy._checkout(self)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 1263, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 717, in checkout
+    with util.safe_reraise():
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 715, in checkout
+    dbapi_connection = rec.get_connection()
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 866, in get_connection
+    self.__connect()
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/create.py", line 643, in connect
+    return dialect.connect(*cargs, **cparams)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 616, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/pymysql/connections.py", line 358, in __init__
+    self.connect()
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/pymysql/connections.py", line 711, in connect
+    raise exc
+[31m[1mpymysql.err.OperationalError[0m:[1m (2003, "Can't connect to MySQL server on '127.0.0.1' ([Errno 61] Connection refused)")[0m
+
+[1mThe above exception was the direct cause of the following exception:[0m
+
+[33m[1mTraceback (most recent call last):[0m
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/uvicorn/__main__.py", line 4, in <module>
+    uvicorn.main()
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/click/core.py", line 1485, in __call__
+    return self.main(*args, **kwargs)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/click/core.py", line 1406, in main
+    rv = self.invoke(ctx)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/click/core.py", line 1269, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/click/core.py", line 824, in invoke
+    return callback(*args, **kwargs)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/uvicorn/main.py", line 409, in main
+    run(
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/uvicorn/main.py", line 575, in run
+    server.run()
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/uvicorn/server.py", line 62, in run
+    return asyncio.run(self.serve(sockets=sockets))
+  File "[32m/opt/homebrew/Cellar/python@3.11/3.11.15/Frameworks/Python.framework/Versions/3.11/lib/python3.11/asyncio/[0m[32m[1mrunners.py[0m", line [33m190[0m, in [35mrun[0m
+    [35m[1mreturn[0m [1mrunner[0m[35m[1m.[0m[1mrun[0m[1m([0m[1mmain[0m[1m)[0m
+  File "[32m/opt/homebrew/Cellar/python@3.11/3.11.15/Frameworks/Python.framework/Versions/3.11/lib/python3.11/asyncio/[0m[32m[1mrunners.py[0m", line [33m118[0m, in [35mrun[0m
+    [35m[1mreturn[0m [1mself[0m[35m[1m.[0m[1m_loop[0m[35m[1m.[0m[1mrun_until_complete[0m[1m([0m[1mtask[0m[1m)[0m
+  File "[32m/opt/homebrew/Cellar/python@3.11/3.11.15/Frameworks/Python.framework/Versions/3.11/lib/python3.11/asyncio/[0m[32m[1mbase_events.py[0m", line [33m641[0m, in [35mrun_until_complete[0m
+    [1mself[0m[35m[1m.[0m[1mrun_forever[0m[1m([0m[1m)[0m
+  File "[32m/opt/homebrew/Cellar/python@3.11/3.11.15/Frameworks/Python.framework/Versions/3.11/lib/python3.11/asyncio/[0m[32m[1mbase_events.py[0m", line [33m608[0m, in [35mrun_forever[0m
+    [1mself[0m[35m[1m.[0m[1m_run_once[0m[1m([0m[1m)[0m
+  File "[32m/opt/homebrew/Cellar/python@3.11/3.11.15/Frameworks/Python.framework/Versions/3.11/lib/python3.11/asyncio/[0m[32m[1mbase_events.py[0m", line [33m1936[0m, in [35m_run_once[0m
+    [1mhandle[0m[35m[1m.[0m[1m_run[0m[1m([0m[1m)[0m
+  File "[32m/opt/homebrew/Cellar/python@3.11/3.11.15/Frameworks/Python.framework/Versions/3.11/lib/python3.11/asyncio/[0m[32m[1mevents.py[0m", line [33m84[0m, in [35m_run[0m
+    [1mself[0m[35m[1m.[0m[1m_context[0m[35m[1m.[0m[1mrun[0m[1m([0m[1mself[0m[35m[1m.[0m[1m_callback[0m[1m,[0m [35m[1m*[0m[1mself[0m[35m[1m.[0m[1m_args[0m[1m)[0m
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/uvicorn/protocols/http/h11_impl.py", line 408, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/uvicorn/middleware/proxy_headers.py", line 69, in __call__
+    return await self.app(scope, receive, send)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/fastapi/applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/applications.py", line 123, in __call__
+    await self.middleware_stack(scope, receive, send)
+> File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/middleware/trustedhost.py", line 34, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/middleware/cors.py", line 91, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/middleware/cors.py", line 146, in simple_response
+    await self.app(scope, receive, send)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/middleware/base.py", line 189, in __call__
+    with collapse_excgroups():
+  File "[32m/opt/homebrew/Cellar/python@3.11/3.11.15/Frameworks/Python.framework/Versions/3.11/lib/python3.11/[0m[32m[1mcontextlib.py[0m", line [33m158[0m, in [35m__exit__[0m
+    [1mself[0m[35m[1m.[0m[1mgen[0m[35m[1m.[0m[1mthrow[0m[1m([0m[1mtyp[0m[1m,[0m [1mvalue[0m[1m,[0m [1mtraceback[0m[1m)[0m
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/_utils.py", line 93, in collapse_excgroups
+    raise exc
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/middleware/base.py", line 191, in __call__
+    response = await self.dispatch_func(request, call_next)
+  File "[32m/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/app/core/[0m[32m[1mlogging.py[0m", line [33m140[0m, in [35mlogging_middleware[0m
+    [1mresponse[0m [35m[1m=[0m [35m[1mawait[0m [1mcall_next[0m[1m([0m[1mrequest[0m[1m)[0m
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/middleware/base.py", line 165, in call_next
+    raise app_exc
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/middleware/base.py", line 151, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/_exception_handler.py", line 64, in wrapped_app
+    raise exc
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/routing.py", line 758, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/routing.py", line 778, in app
+    await route.handle(scope, receive, send)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/routing.py", line 299, in handle
+    await self.app(scope, receive, send)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/routing.py", line 79, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/_exception_handler.py", line 64, in wrapped_app
+    raise exc
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/routing.py", line 74, in app
+    response = await func(request)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/fastapi/routing.py", line 278, in app
+    raw_response = await run_endpoint_function(
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/fastapi/routing.py", line 193, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/concurrency.py", line 42, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func, *args)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/anyio/to_thread.py", line 63, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 2518, in run_sync_in_worker_thread
+    return await future
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 1002, in run
+    result = context.run(func, *args)
+  File "[32m/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/app/api/[0m[32m[1mconversations.py[0m", line [33m41[0m, in [35mclose_session[0m
+    [1mok[0m [35m[1m=[0m [1msvc[0m[35m[1m.[0m[1mclose_session[0m[1m([0m[1mreq[0m[35m[1m.[0m[1msession_id[0m[1m)[0m
+  File "[32m/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/app/services/[0m[32m[1mconversation_service.py[0m", line [33m285[0m, in [35mclose_session[0m
+    [35m[1mreturn[0m [1mself[0m[35m[1m.[0m[1mstore[0m[35m[1m.[0m[1mclose_session[0m[1m([0m[1msession_id[0m[1m)[0m
+  File "[32m/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/app/services/[0m[32m[1mconversation_service.py[0m", line [33m73[0m, in [35mclose_session[0m
+    [1morm[0m [35m[1m=[0m [1mdb[0m[35m[1m.[0m[1mexecute[0m[1m([0m
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2306, in execute
+    return self._execute_internal(
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2181, in _execute_internal
+    conn = self._connection_for_bind(bind)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2050, in _connection_for_bind
+    return trans._connection_for_bind(engine, execution_options)
+  File "<string>", line 2, in _connection_for_bind
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 1144, in _connection_for_bind
+    conn = bind.connect()
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3279, in connect
+    return self._connection_cls(self)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 147, in __init__
+    Connection._handle_dbapi_exception_noconnection(
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2443, in _handle_dbapi_exception_noconnection
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 145, in __init__
+    self._dbapi_connection = engine.raw_connection()
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3303, in raw_connection
+    return self.pool.connect()
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 449, in connect
+    return _ConnectionFairy._checkout(self)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 1263, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 717, in checkout
+    with util.safe_reraise():
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 715, in checkout
+    dbapi_connection = rec.get_connection()
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 866, in get_connection
+    self.__connect()
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/create.py", line 643, in connect
+    return dialect.connect(*cargs, **cparams)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 616, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/pymysql/connections.py", line 358, in __init__
+    self.connect()
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/pymysql/connections.py", line 711, in connect
+    raise exc
+[31m[1msqlalchemy.exc.OperationalError[0m:[1m (pymysql.err.OperationalError) (2003, "Can't connect to MySQL server on '127.0.0.1' ([Errno 61] Connection refused)")
+(Background on this error at: https://sqlalche.me/e/20/e3q8)[0m
+INFO:     127.0.0.1:54191 - "POST /api/v1/conversations/session/close HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/pymysql/connections.py", line 644, in connect
+    sock = socket.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.15/Frameworks/Python.framework/Versions/3.11/lib/python3.11/socket.py", line 863, in create_connection
+    raise exceptions[0]
+  File "/opt/homebrew/Cellar/python@3.11/3.11.15/Frameworks/Python.framework/Versions/3.11/lib/python3.11/socket.py", line 848, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [Errno 61] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 145, in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3303, in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 449, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 1263, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 717, in checkout
+    with util.safe_reraise():
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 715, in checkout
+    dbapi_connection = rec.get_connection()
+                       ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 866, in get_connection
+    self.__connect()
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/create.py", line 643, in connect
+    return dialect.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 616, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/pymysql/connections.py", line 358, in __init__
+    self.connect()
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/pymysql/connections.py", line 711, in connect
+    raise exc
+pymysql.err.OperationalError: (2003, "Can't connect to MySQL server on '127.0.0.1' ([Errno 61] Connection refused)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/uvicorn/protocols/http/h11_impl.py", line 408, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/uvicorn/middleware/proxy_headers.py", line 69, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/fastapi/applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/applications.py", line 123, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/middleware/trustedhost.py", line 34, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/middleware/cors.py", line 91, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/middleware/cors.py", line 146, in simple_response
+    await self.app(scope, receive, send)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/middleware/base.py", line 189, in __call__
+    with collapse_excgroups():
+  File "/opt/homebrew/Cellar/python@3.11/3.11.15/Frameworks/Python.framework/Versions/3.11/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/_utils.py", line 93, in collapse_excgroups
+    raise exc
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/middleware/base.py", line 191, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/app/core/logging.py", line 140, in logging_middleware
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/middleware/base.py", line 165, in call_next
+    raise app_exc
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/middleware/base.py", line 151, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/_exception_handler.py", line 64, in wrapped_app
+    raise exc
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/routing.py", line 758, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/routing.py", line 778, in app
+    await route.handle(scope, receive, send)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/routing.py", line 299, in handle
+    await self.app(scope, receive, send)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/routing.py", line 79, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/_exception_handler.py", line 64, in wrapped_app
+    raise exc
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/routing.py", line 74, in app
+    response = await func(request)
+               ^^^^^^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/fastapi/routing.py", line 278, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/fastapi/routing.py", line 193, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/starlette/concurrency.py", line 42, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/anyio/to_thread.py", line 63, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 2518, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 1002, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/app/api/conversations.py", line 41, in close_session
+    ok = svc.close_session(req.session_id)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/app/services/conversation_service.py", line 285, in close_session
+    return self.store.close_session(session_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/app/services/conversation_service.py", line 73, in close_session
+    orm = db.execute(
+          ^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2306, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2181, in _execute_internal
+    conn = self._connection_for_bind(bind)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2050, in _connection_for_bind
+    return trans._connection_for_bind(engine, execution_options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 2, in _connection_for_bind
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 1144, in _connection_for_bind
+    conn = bind.connect()
+           ^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3279, in connect
+    return self._connection_cls(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 147, in __init__
+    Connection._handle_dbapi_exception_noconnection(
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2443, in _handle_dbapi_exception_noconnection
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 145, in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3303, in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 449, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 1263, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 717, in checkout
+    with util.safe_reraise():
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 715, in checkout
+    dbapi_connection = rec.get_connection()
+                       ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 866, in get_connection
+    self.__connect()
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/create.py", line 643, in connect
+    return dialect.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 616, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/pymysql/connections.py", line 358, in __init__
+    self.connect()
+  File "/Users/zzl/Desktop/个人文件夹/Memora/personal_knowledge_base/venv/lib/python3.11/site-packages/pymysql/connections.py", line 711, in connect
+    raise exc
+sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, "Can't connect to MySQL server on '127.0.0.1' ([Errno 61] Connection refused)")
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-14 02:19:33.996 | INFO     | 开始清理过期会话...
+2026-06-14 02:19:34.139 | INFO     | 清理过期会话完成，共删除 0 个会话
+2026-06-14 02:19:34.140 | INFO     | 下次清理过期会话的时间: 2026-06-15 02:00:00, 等待 23.67 小时
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+2026-06-14 22:23:55.781 | INFO     | 应用关闭：清理资源
+2026-06-14 22:23:55.809 | INFO     | 定时清理任务已取消
+INFO:     Application shutdown complete.
+INFO:     Finished server process [91145]

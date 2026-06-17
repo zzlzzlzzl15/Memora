@@ -1,0 +1,39 @@
+{
+  "name": "memora-knowledge-graph",
+  "version": "2.0.0",
+  "description": "Interactive knowledge graph visualization for Memora personal knowledge base with force-directed layout, zoom/pan interactions, and Obsidian-style design",
+  "main": "static/script.js",
+  "scripts": {
+    "start": "python3 -m http.server 8080 --directory static",
+    "dev": "python3 -m http.server 8080 --directory static"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zzlzzlzzl15/memora-knowledge-graph.git"
+  },
+  "keywords": [
+    "knowledge-graph",
+    "visualization",
+    "rag",
+    "memora",
+    "obsidian",
+    "force-directed",
+    "canvas",
+    "personal-knowledge-base"
+  ],
+  "author": "zzlzzlzzl15",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/zzlzzlzzl15/memora-knowledge-graph/issues"
+  },
+  "homepage": "https://github.com/zzlzzlzzl15/memora-knowledge-graph#readme",
+  "files": [
+    "static/",
+    "openclaw-skill/",
+    "LICENSE",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

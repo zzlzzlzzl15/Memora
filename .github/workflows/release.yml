@@ -1,0 +1,58 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Get version from tag
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      
+    - name: Create tarball
+      run: |
+        tar -czf memora-knowledge-graph-${{ steps.get_version.outputs.VERSION }}.tar.gz \
+          static/ \
+          openclaw-skill/ \
+          package.json \
+          README.md \
+          CHANGELOG.md \
+          LICENSE \
+          install.sh
+        
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: memora-knowledge-graph-${{ steps.get_version.outputs.VERSION }}.tar.gz
+        body_path: CHANGELOG.md
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Upload to clawhub (if configured)
+      if: ${{ secrets.CLAHUB_TOKEN }}
+      run: |
+        # This step requires CLAHUB_TOKEN secret to be set in repository settings
+        curl -X POST \
+          -H "Authorization: Bearer ${{ secrets.CLAHUB_TOKEN }}" \
+          -F "file=@memora-knowledge-graph-${{ steps.get_version.outputs.VERSION }}.tar.gz" \
+          https://clawhub.com/api/v1/packages/upload
+          
+    - name: Notify success
+      run: |
+        echo "✅ Release v${{ steps.get_version.outputs.VERSION }} created successfully!"
+        echo " Download: https://github.com/${{ github.repository }}/releases/download/v${{ steps.get_version.outputs.VERSION }}/memora-knowledge-graph-${{ steps.get_version.outputs.VERSION }}.tar.gz"

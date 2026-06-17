@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Memora</title>
-<link rel="stylesheet" href="/static/style.css?v=astronaut-theme-20260616">
+<link rel="stylesheet" href="/static/style.css?v=kg-panning-fix-20260613">
 </head>
 <body>
     <!-- 语言切换按钮 - 单用户模式下默认隐藏 -->
@@ -172,67 +172,79 @@
             </div>
 
             <div id="studio-panel">
+                <!-- 知识图谱标题 -->
                 <div class="studio-header">
-                    <h2 id="studio-title">Studio</h2>
+                    <h2 id="studio-title">知识图谱</h2>
                 </div>
                 
-                <!-- 卡片网格 (始终显示) -->
-                <div id="studio-cards-grid" class="studio-grid">
-                    <div class="studio-card" id="kg-card">
-                        <div class="studio-card-title" id="kg-title">🕸️ 知识图谱</div>
-                        <div class="studio-card-desc" id="kg-desc">查看文档实体关系网络</div>
-                    </div>
-                    <div class="studio-card disabled">
-                        <div class="studio-card-title" id="audio-title">音频预览</div>
-                        <div class="studio-card-desc" id="audio-desc">预留功能，后续开放</div>
-                    </div>
-                    <div class="studio-card disabled">
-                        <div class="studio-card-title" id="mindmap-title">思维导图</div>
-                        <div class="studio-card-desc" id="mindmap-desc">预留功能，后续开放</div>
-                    </div>
-                    <div class="studio-card disabled">
-                        <div class="studio-card-title" id="report-title">报告生成</div>
-                        <div class="studio-card-desc" id="report-desc">预留功能，后续开放</div>
-                    </div>
-                </div>
-                
-                <!-- 知识图谱可视化区域 (在卡片下方，默认隐藏) -->
-                <div id="kg-view-container" style="display:none; margin-top: 20px;">
-                    <!-- 顶部标签切换 -->
-                    <div class="kg-tabs-bar">
-                        <button class="kg-tab active" data-type="documents">📄 文档图谱</button>
-                        <button class="kg-tab" data-type="entities"> 实体图谱</button>
-                    </div>
-                    
-                    <!-- 画布容器 -->
-                    <div id="kg-canvas-container">
-                        <canvas id="kg-canvas"></canvas>
-                        <div id="kg-loading-overlay">
-                            <div class="loading-spinner"></div>
-                            <p>加载知识图谱...</p>
+                <!-- 知识图谱预览区域 (上下两个小图) -->
+                <div id="kg-view-container">
+                    <!-- 文档图谱预览 -->
+                    <div class="kg-preview-card" id="kg-docs-preview">
+                        <div class="kg-preview-header">
+                            <h3>📄 文档图谱</h3>
+                            <span class="kg-preview-badge" id="kg-docs-badge">0 节点</span>
+                        </div>
+                        <div class="kg-preview-canvas">
+                            <canvas id="kg-canvas-docs-preview"></canvas>
+                            <div class="kg-preview-overlay">
+                                <span class="preview-hint">点击查看大图</span>
+                            </div>
                         </div>
                     </div>
                     
-                    <!-- 底部统计栏 -->
-                    <div id="kg-stats-bar">
-                        <span class="stat-item">
-                            <span class="stat-icon"></span>
-                            <span class="stat-label">文档:</span>
-                            <span class="stat-value" id="kg-doc-count">0</span>
-                        </span>
-                        <span class="stat-item">
-                            <span class="stat-icon">🔵</span>
-                            <span class="stat-label">实体:</span>
-                            <span class="stat-value" id="kg-entity-count">0</span>
-                        </span>
-                        <span class="stat-item">
-                            <span class="stat-icon">⚡</span>
-                            <span class="stat-label">关系:</span>
-                            <span class="stat-value" id="kg-relation-count">0</span>
-                        </span>
-                        <div class="kg-controls">
-                            <button id="kg-refresh-btn" class="icon-btn" title="刷新图谱">🔄</button>
-                            <button id="kg-close-btn" class="icon-btn" title="关闭图谱">✖️</button>
+                    <!-- 实体图谱预览 -->
+                    <div class="kg-preview-card" id="kg-entities-preview">
+                        <div class="kg-preview-header">
+                            <h3>🔵 实体图谱</h3>
+                            <span class="kg-preview-badge" id="kg-entities-badge">0 节点</span>
+                        </div>
+                        <div class="kg-preview-canvas">
+                            <canvas id="kg-canvas-entities-preview"></canvas>
+                            <div class="kg-preview-overlay">
+                                <span class="preview-hint">点击查看大图</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 全屏模态框 -->
+                <div id="kg-modal" class="kg-modal">
+                    <div class="kg-modal-content">
+                        <div class="kg-modal-header">
+                            <h3 id="kg-modal-title">知识图谱</h3>
+                            <div class="kg-modal-controls">
+                                <button id="kg-modal-refresh" class="kg-btn-icon" title="刷新">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M23 4v6h-6M1 20v-6h6"/>
+                                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                                    </svg>
+                                </button>
+                                <button id="kg-modal-close" class="kg-btn-icon" title="关闭">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="18" y1="6" x2="6" y2="18"/>
+                                        <line x1="6" y1="6" x2="18" y2="18"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="kg-modal-body">
+                            <canvas id="kg-canvas-fullscreen"></canvas>
+                            <div id="kg-modal-loading" class="kg-modal-loading">
+                                <div class="spinner"></div>
+                                <p>加载中...</p>
+                            </div>
+                        </div>
+                        <div class="kg-modal-footer">
+                            <div class="kg-modal-stats">
+                                <span id="kg-modal-node-count">节点: 0</span>
+                                <span id="kg-modal-edge-count">关系: 0</span>
+                            </div>
+                            <div class="kg-modal-hints">
+                                <span>🖱️ 滚轮缩放</span>
+                                <span>✋ 拖拽移动</span>
+                                <span>👆 悬停查看详情</span>
+                            </div>
                         </div>
                     </div>
                 </div>

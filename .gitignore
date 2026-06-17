@@ -1,104 +1,71 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# Virtual environments
-venv/
 env/
+venv/
 ENV/
-env.bak/
-venv.bak/
+.env
+.env.local
+.env.*.local
 
-# IDE / Editor
+# IDE
 .vscode/
 .idea/
-.trae/
-.claude/
-.qoder/
-.spec-workflow/
 *.swp
 *.swo
 *~
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Build
+dist/
+build/
+*.tar.gz
+*.zip
 
 # Logs
 logs/
 *.log
-nohup.out
 
-# User uploads
+# Cache
+.cache/
+.qoder/
+
+# Uploads and temporary files
 uploads/
-!uploads/.gitkeep
-
-# User avatars
-static/avatars/
-!static/avatars/.gitkeep
-
-# Database files
-*.db
-*.sqlite
-*.sqlite3
-personal_knowledgebase.db
-
-# MySQL data (Docker volume)
+huggingface_cache/
+qdrant_data/
 mysql_data/
 
-# Vector database (auto-generated)
-qdrant_data/
-!qdrant_data/.gitkeep
-
-# Model cache (auto-generated)
-huggingface_cache/
-!huggingface_cache/.gitkeep
-
-# Environment variables (contains secrets)
-.env
-.env.local
-.env.*.local
-.env.production
-
-# Tests
+# Test files
 tests/
-.pytest_cache/
+test_*.py
+pytest_cache/
 .coverage
 htmlcov/
-.tox/
 
-# Temp scripts / migration output
-sync_output.txt
-test_upload.txt
-test_*.py
-check_*.py
-sync_*.py
-query
-query_*.py
-migrate_*.py
-cleanup_*.py
-clear_*.py
-fix_*.py
-download_*.py
+# Docker
+docker-compose*.yml
+Dockerfile
+.dockerignore
 
-# PID file
-.memora.pid
+# Documentation (keep only README)
+docs/
+*.md
+!README.md
 
-# Misc
-*.local
+# Static assets that are generated or large
+static/*.svg
+static/avatars/

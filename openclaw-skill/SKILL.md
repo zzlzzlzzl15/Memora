@@ -7,7 +7,7 @@ description: >
   Use when: user wants to visualize relationships between documents and entities, explore knowledge structure,
   or understand how information is connected in their knowledge base.
 metadata:
-  version: 2.0.0
+  version: 2.0.3
   author: zzlzzlzzl15
   license: MIT
   openclaw:

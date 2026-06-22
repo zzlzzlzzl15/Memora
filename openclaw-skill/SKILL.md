@@ -10,7 +10,7 @@ description: >
   have AI-powered conversations about their knowledge, visualize document/entity relationships,
   or integrate knowledge management into their OpenClaw workflow.
 metadata:
-  version: 2.0.5
+  version: 2.0.6
   author: zzlzzlzzl15
   license: MIT
   openclaw:
@@ -25,7 +25,16 @@ metadata:
 
 ## Version History
 
-### v2.0.5 (Current)
+### v2.0.6 (Current)
+- 🔒 **Data Consistency Guarantee**: Real-time Neo4j-MySQL synchronization with automatic orphan node cleanup
+  - Added `_ensure_consistency_with_mysql()` for pre-query validation
+  - Integrated into all graph query methods (`get_document_graph`, `get_entity_graph`, `get_full_graph`, `get_stats`)
+- 🗑️ **Enhanced Deletion Logic**: Improved `delete_document_graph()` with detailed logging and orphan entity cleanup
+- 🆔 **Entity ID Fix**: Auto-generated UUIDs for all Entity nodes, resolving "0 nodes displayed" issue
+- 🔄 **New Sync API**: `POST /api/v1/documents/knowledge-graph/sync` for manual consistency checks
+- 📊 **Document Node Attributes**: Added `document_id` property for frontend-backend compatibility
+
+### v2.0.5
 - 📝 **Complete SKILL.md Rewrite**: Updated OpenClaw skill definition with full product overview
 - 🎨 **Knowledge Graph v2.0**: Preview + Fullscreen Modal architecture
 - 🖱️ **Enhanced Interactions**: Zoom, pan, drag, hover details

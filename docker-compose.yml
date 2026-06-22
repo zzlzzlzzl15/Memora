@@ -6,12 +6,12 @@ services:
     container_name: memora-mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-changeme}
+      MYSQL_ROOT_PASSWORD: "memora_mysql_root_pass_2024"
       MYSQL_DATABASE: personal_knowledgebase
       MYSQL_CHARSET: utf8mb4
       MYSQL_COLLATION: utf8mb4_unicode_ci
     ports:
-      - "127.0.0.1:3306:3306"
+      - "127.0.0.1:3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
@@ -41,7 +41,7 @@ services:
     container_name: memora-neo4j
     restart: always
     environment:
-      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:-changeme}
+      NEO4J_AUTH: neo4j/memora_neo4j_pass
       NEO4J_PLUGINS: '[]'
       NEO4J_server_memory_pagecache_size: 128M
       NEO4J_server_memory_heap_initial__size: 256M
@@ -74,7 +74,12 @@ services:
       retries: 5
 
   app:
-    build: .
+    build:
+      context: .
+      args:
+        HTTP_PROXY: ""
+        HTTPS_PROXY: ""
+        NO_PROXY: "*"
     container_name: memora-app
     restart: always
     env_file:

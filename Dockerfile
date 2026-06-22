@@ -2,8 +2,9 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Use default Debian sources (Clash proxy will handle routing)
-# Remove any custom sources.list to use defaults
+# Use Chinese mirrors for Debian to avoid proxy issues during build
+RUN sed -i 's|deb.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list.d/debian.sources 2>/dev/null || true; \
+    sed -i 's|deb.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list 2>/dev/null || true
 
 # Install system dependencies with retry
 RUN apt-get update --fix-missing && apt-get install -y --no-install-recommends \

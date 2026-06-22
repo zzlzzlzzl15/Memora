@@ -171,6 +171,7 @@ class KnowledgeGraphService:
                     MERGE (d:Document {doc_id: $doc_id})
                     ON CREATE SET d.title = $title,
                                   d.user_id = $user_id,
+                                  d.document_id = $doc_id,
                                   d.created_at = datetime()
                     ON MATCH SET  d.title = $title,
                                   d.updated_at = datetime()
@@ -234,6 +235,7 @@ class KnowledgeGraphService:
             """
             MERGE (e:Entity {entity_name: $entity_name, user_id: $user_id})
             ON CREATE SET 
+                e.entity_id = toString(randomUUID()),
                 e.entity_type = $entity_type,
                 e.description = $description,
                 e.created_at = datetime()
@@ -699,10 +701,27 @@ class KnowledgeGraphService:
     def delete_document_graph(self, doc_id: str, user_id: str):
         """删除文档关联的所有图谱数据"""
         if not self.available:
+            logger.warning(f"Neo4j 不可用，跳过删除文档 {doc_id} 的图谱数据")
             return
 
         try:
             with self._driver.session(database=settings.neo4j_database) as session:
+                # 先统计要删除的数据量
+                stats_result = session.run(
+                    """
+                    MATCH (d:Document {doc_id: $doc_id, user_id: $user_id})
+                    OPTIONAL MATCH (d)-[r]-(e)
+                    RETURN count(DISTINCT d) AS doc_count, count(r) AS rel_count
+                    """,
+                    doc_id=doc_id,
+                    user_id=user_id,
+                )
+                stats = stats_result.single()
+                doc_count = stats["doc_count"]
+                rel_count = stats["rel_count"]
+                
+                logger.info(f"准备删除文档 {doc_id}: {doc_count} 个文档节点, {rel_count} 条关系")
+                
                 # 删除文档节点及其关系
                 session.run(
                     """
@@ -712,18 +731,26 @@ class KnowledgeGraphService:
                     doc_id=doc_id,
                     user_id=user_id,
                 )
+                
                 # 删除孤立实体（没有 APPEARS_IN 关系的）
-                session.run(
+                orphan_result = session.run(
                     """
                     MATCH (e:Entity {user_id: $user_id})
                     WHERE NOT (e)-[:APPEARS_IN]->(:Document)
+                    WITH e LIMIT 1000
                     DETACH DELETE e
+                    RETURN count(e) AS deleted_count
                     """,
                     user_id=user_id,
                 )
-                logger.info(f"已删除文档 {doc_id} 的图谱数据")
+                orphan_stats = orphan_result.single()
+                orphan_count = orphan_stats["deleted_count"] if orphan_stats else 0
+                
+                logger.info(f"已删除文档 {doc_id} 的图谱数据，同时清理了 {orphan_count} 个孤立实体")
         except Exception as e:
             logger.error(f"删除文档图谱数据失败: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
 
     def get_stats(self, user_id: str) -> Dict[str, int]:
         """获取知识图谱统计信息"""
@@ -731,6 +758,11 @@ class KnowledgeGraphService:
             return {"entity_count": 0, "relation_count": 0, "document_count": 0}
 
         try:
+            # 【关键】在查询前先确保与 MySQL 的一致性
+            orphan_count = self._ensure_consistency_with_mysql(user_id)
+            if orphan_count > 0:
+                logger.info(f"已清理 {orphan_count} 个孤儿节点，继续查询统计数据")
+
             with self._driver.session(database=settings.neo4j_database) as session:
                 entity_result = session.run(
                     "MATCH (e:Entity {user_id: $user_id}) RETURN count(e) AS count",
@@ -782,6 +814,11 @@ class KnowledgeGraphService:
             return {"nodes": [], "edges": [], "document_count": 0, "total_nodes": 0, "total_edges": 0}
 
         try:
+            # 【关键】在查询前先确保与 MySQL 的一致性
+            orphan_count = self._ensure_consistency_with_mysql(user_id)
+            if orphan_count > 0:
+                logger.info(f"已清理 {orphan_count} 个孤儿节点，继续查询完整图谱")
+
             with self._driver.session(database=settings.neo4j_database) as session:
                 # 获取文档数量
                 doc_result = session.run(
@@ -846,6 +883,84 @@ class KnowledgeGraphService:
             logger.error(f"获取图谱数据失败: {e}")
             return {"nodes": [], "edges": [], "document_count": 0, "total_nodes": 0, "total_edges": 0, "error": str(e)}
     
+    def _ensure_consistency_with_mysql(self, user_id: str) -> int:
+        """
+        确保 Neo4j 与 MySQL 的一致性（轻量级检查）
+        
+        在每次查询图谱数据前调用，自动清理孤儿节点。
+        相比 sync_with_mysql()，这个方法只删除孤儿文档，不返回详细统计。
+        
+        Returns:
+            清理的孤儿文档数量
+        """
+        if not self.available:
+            return 0
+        
+        try:
+            # 1. 从 MySQL 获取权威文档列表
+            from app.core.sql import get_db
+            from app.models.db_models import DocumentORM
+            
+            db = next(get_db())
+            mysql_doc_ids = set(
+                doc.doc_id for doc in db.query(DocumentORM.doc_id).filter(
+                    DocumentORM.user_id == user_id,
+                    DocumentORM.is_deleted == False
+                ).all()
+            )
+            db.close()
+            
+            # 2. 找出并删除 Neo4j 中的孤儿文档
+            with self._driver.session(database=settings.neo4j_database) as session:
+                # 先获取 Neo4j 中所有文档 ID
+                neo4j_docs_result = session.run(
+                    "MATCH (d:Document {user_id: $user_id}) RETURN d.doc_id AS doc_id",
+                    user_id=user_id,
+                )
+                neo4j_doc_ids = {record["doc_id"] for record in neo4j_docs_result}
+                
+                orphan_doc_ids = neo4j_doc_ids - mysql_doc_ids
+                
+                if orphan_doc_ids:
+                    logger.warning(f"发现 {len(orphan_doc_ids)} 个孤儿文档节点，正在清理...")
+                    
+                    # 批量删除孤儿文档及其关系
+                    result = session.run(
+                        """
+                        MATCH (d:Document {user_id: $user_id})
+                        WHERE d.doc_id IN $orphan_ids
+                        DETACH DELETE d
+                        RETURN count(d) AS deleted_count
+                        """,
+                        user_id=user_id,
+                        orphan_ids=list(orphan_doc_ids),
+                    )
+                    deleted_docs = result.single()["deleted_count"]
+                    logger.info(f"已清理 {deleted_docs} 个孤儿文档节点")
+                    
+                    # 同时清理孤立实体
+                    orphan_entities_result = session.run(
+                        """
+                        MATCH (e:Entity {user_id: $user_id})
+                        WHERE NOT (e)-[:APPEARS_IN]->(:Document)
+                        WITH e LIMIT 5000
+                        DETACH DELETE e
+                        RETURN count(e) AS deleted_count
+                        """,
+                        user_id=user_id,
+                    )
+                    deleted_entities = orphan_entities_result.single()["deleted_count"]
+                    if deleted_entities > 0:
+                        logger.info(f"已清理 {deleted_entities} 个孤立实体节点")
+                    
+                    return deleted_docs
+                else:
+                    return 0
+                
+        except Exception as e:
+            logger.error(f"一致性检查失败（不影响主流程）: {e}")
+            return 0
+
     def get_document_graph(self, user_id: str, limit: int = 100) -> Dict[str, Any]:
         """获取文档图谱(文档节点和文档间关系)
         
@@ -865,12 +980,17 @@ class KnowledgeGraphService:
             return {"nodes": [], "edges": [], "total_nodes": 0, "total_edges": 0}
 
         try:
+            # 【关键】在查询前先确保与 MySQL 的一致性
+            orphan_count = self._ensure_consistency_with_mysql(user_id)
+            if orphan_count > 0:
+                logger.info(f"已清理 {orphan_count} 个孤儿节点，继续查询图谱数据")
+
             with self._driver.session(database=settings.neo4j_database) as session:
                 # 获取所有文档节点
                 docs_query = """
                 MATCH (d:Document {user_id: $user_id})
                 WITH d ORDER BY d.created_at DESC LIMIT $limit
-                RETURN d.document_id AS id, d.title AS label, 'Document' AS type,
+                RETURN d.doc_id AS id, d.title AS label, 'Document' AS type,
                        d.created_at AS created_at
                 """
                 doc_result = session.run(docs_query, user_id=user_id, limit=limit)
@@ -906,10 +1026,10 @@ class KnowledgeGraphService:
                 
                 # 获取文档之间的关系(通过共享实体)
                 relations_query = """
-                MATCH (d1:Document {user_id: $user_id})-[:CONTAINS_ENTITY]->(e:Entity)<-[:CONTAINS_ENTITY]-(d2:Document {user_id: $user_id})
-                WHERE d1.document_id IN $doc_ids AND d2.document_id IN $doc_ids AND d1.document_id < d2.document_id
+                MATCH (d1:Document {user_id: $user_id})-[:APPEARS_IN]-(e:Entity)-[:APPEARS_IN]-(d2:Document {user_id: $user_id})
+                WHERE d1.doc_id IN $doc_ids AND d2.doc_id IN $doc_ids AND d1.doc_id < d2.doc_id
                 WITH d1, d2, count(e) AS weight
-                RETURN d1.document_id AS source, d2.document_id AS target, 'SHARED_ENTITY' AS type, weight
+                RETURN d1.doc_id AS source, d2.doc_id AS target, 'SHARED_ENTITY' AS type, weight
                 """
                 relation_result = session.run(
                     relations_query, 
@@ -960,6 +1080,11 @@ class KnowledgeGraphService:
             return {"nodes": [], "edges": [], "total_nodes": 0, "total_edges": 0}
 
         try:
+            # 【关键】在查询前先确保与 MySQL 的一致性
+            orphan_count = self._ensure_consistency_with_mysql(user_id)
+            if orphan_count > 0:
+                logger.info(f"已清理 {orphan_count} 个孤儿节点，继续查询图谱数据")
+
             with self._driver.session(database=settings.neo4j_database) as session:
                 # 获取所有实体节点
                 entities_query = """
@@ -1037,7 +1162,104 @@ class KnowledgeGraphService:
             return {"nodes": [], "edges": [], "total_nodes": 0, "total_edges": 0, "error": str(e)}
 
 
-# ─── 单例管理 ───────────────────────────────────────────────────
+    def sync_with_mysql(self, user_id: str) -> Dict[str, int]:
+        """
+        同步 Neo4j 与 MySQL 的文档数据一致性
+        
+        以 MySQL 为单一事实来源（Single Source of Truth）：
+        1. 查询 MySQL 中该用户所有未删除的文档 ID
+        2. 删除 Neo4j 中存在但 MySQL 中不存在的 Document 节点
+        3. 清理孤立 Entity 节点
+        
+        Returns:
+            统计信息：{"orphan_docs_deleted": N, "orphan_entities_deleted": M}
+        """
+        if not self.available:
+            logger.warning("Neo4j 不可用，跳过同步")
+            return {"orphan_docs_deleted": 0, "orphan_entities_deleted": 0}
+        
+        try:
+            # 1. 从 MySQL 获取权威文档列表
+            from app.core.sql import get_db
+            from app.models.db_models import DocumentORM
+            
+            db = next(get_db())
+            mysql_doc_ids = set(
+                doc.doc_id for doc in db.query(DocumentORM.doc_id).filter(
+                    DocumentORM.user_id == user_id,
+                    DocumentORM.is_deleted == False
+                ).all()
+            )
+            db.close()
+            
+            logger.info(f"MySQL 中文档数量: {len(mysql_doc_ids)}")
+            
+            # 2. 找出 Neo4j 中的孤儿文档（MySQL 中不存在或未删除的）
+            with self._driver.session(database=settings.neo4j_database) as session:
+                # 先获取 Neo4j 中所有文档 ID
+                neo4j_docs_result = session.run(
+                    "MATCH (d:Document {user_id: $user_id}) RETURN d.doc_id AS doc_id",
+                    user_id=user_id,
+                )
+                neo4j_doc_ids = {record["doc_id"] for record in neo4j_docs_result}
+                
+                orphan_doc_ids = neo4j_doc_ids - mysql_doc_ids
+                
+                if orphan_doc_ids:
+                    logger.warning(f"发现 {len(orphan_doc_ids)} 个孤儿文档节点: {orphan_doc_ids}")
+                    
+                    # 批量删除孤儿文档及其关系
+                    result = session.run(
+                        """
+                        MATCH (d:Document {user_id: $user_id})
+                        WHERE d.doc_id IN $orphan_ids
+                        DETACH DELETE d
+                        RETURN count(d) AS deleted_count
+                        """,
+                        user_id=user_id,
+                        orphan_ids=list(orphan_doc_ids),
+                    )
+                    deleted_docs = result.single()["deleted_count"]
+                    logger.info(f"已删除 {deleted_docs} 个孤儿文档节点")
+                else:
+                    deleted_docs = 0
+                    logger.info("Neo4j 与 MySQL 文档数据一致，无孤儿节点")
+                
+                # 3. 清理孤立实体节点（没有 APPEARS_IN 关系的）
+                orphan_entities_result = session.run(
+                    """
+                    MATCH (e:Entity {user_id: $user_id})
+                    WHERE NOT (e)-[:APPEARS_IN]->(:Document)
+                    WITH e LIMIT 5000
+                    DETACH DELETE e
+                    RETURN count(e) AS deleted_count
+                    """,
+                    user_id=user_id,
+                )
+                deleted_entities = orphan_entities_result.single()["deleted_count"]
+                
+                if deleted_entities > 0:
+                    logger.info(f"已清理 {deleted_entities} 个孤立实体节点")
+                
+                return {
+                    "orphan_docs_deleted": deleted_docs,
+                    "orphan_entities_deleted": deleted_entities,
+                    "mysql_doc_count": len(mysql_doc_ids),
+                    "neo4j_doc_count": len(neo4j_doc_ids) - len(orphan_doc_ids),
+                }
+                
+        except Exception as e:
+            logger.error(f"同步 Neo4j 与 MySQL 失败: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            return {
+                "orphan_docs_deleted": 0,
+                "orphan_entities_deleted": 0,
+                "error": str(e),
+            }
+
+
+# ─── 单例管理 ────────────────────────────────────────────────────
 
 _kg_service: Optional[KnowledgeGraphService] = None
 

@@ -1013,6 +1013,49 @@ async def get_entity_graph(
         raise HTTPException(status_code=500, detail=f"获取实体图谱失败: {str(e)}")
 
 
+@router.post("/knowledge-graph/sync", summary="同步 Neo4j 与 MySQL 数据一致性")
+async def sync_knowledge_graph_with_mysql(
+    current_user: dict = Depends(get_current_active_user),
+    req_logger = Depends(get_request_logger)
+):
+    """
+    手动触发 Neo4j 与 MySQL 的数据同步
+    
+    以 MySQL 为单一事实来源（Single Source of Truth）：
+    - 删除 Neo4j 中存在但 MySQL 中已删除的 Document 节点
+    - 清理孤立的 Entity 节点
+    
+    建议在以下场景使用：
+    1. 发现文档图谱显示异常
+    2. 定期维护任务
+    3. 批量删除文档后的一致性检查
+    """
+    if not settings.neo4j_enabled:
+        raise HTTPException(status_code=400, detail="知识图谱功能未启用")
+    try:
+        from app.services.knowledge_graph import get_knowledge_graph_service
+        kg_service = get_knowledge_graph_service()
+        if not kg_service.available:
+            raise HTTPException(status_code=503, detail="知识图谱服务不可用")
+        
+        result = kg_service.sync_with_mysql(current_user["user_id"])
+        
+        if "error" in result:
+            raise HTTPException(status_code=500, detail=f"同步失败: {result['error']}")
+        
+        req_logger.info(f"KG.sync: user={current_user['user_id']} result={result}")
+        return {
+            "success": True,
+            "message": "同步完成",
+            **result
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        req_logger.exception(f"KG.sync: error {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail=f"同步失败: {str(e)}")
+
+
 # ─── 3.12 文档智能摘要 API ───────────────────────────────────────────────────
 
 @router.post("/{document_id:uuid}/summarize", summary="生成文档智能摘要")

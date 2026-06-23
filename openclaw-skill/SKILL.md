@@ -10,7 +10,7 @@ description: >
   have AI-powered conversations about their knowledge, visualize document/entity relationships,
   or integrate knowledge management into their OpenClaw workflow.
 metadata:
-  version: 2.0.6
+  version: 2.0.7
   author: zzlzzlzzl15
   license: MIT
   openclaw:
@@ -25,7 +25,12 @@ metadata:
 
 ## Version History
 
-### v2.0.6 (Current)
+### v2.0.7 (Current)
+- 🐳 **Docker Build Optimization**: Use Aliyun mirror sources for Debian packages, disable proxy during build
+- 🔧 **Deployment Config**: Hardcoded database credentials in docker-compose, added HF_HUB_OFFLINE setting
+- 🔒 **Data Consistency**: All v2.0.6 improvements included (Neo4j-MySQL sync, entity ID fix, sync API)
+
+### v2.0.6
 - 🔒 **Data Consistency Guarantee**: Real-time Neo4j-MySQL synchronization with automatic orphan node cleanup
   - Added `_ensure_consistency_with_mysql()` for pre-query validation
   - Integrated into all graph query methods (`get_document_graph`, `get_entity_graph`, `get_full_graph`, `get_stats`)

@@ -1,5 +1,5 @@
 {
-  "name": "memora",
+  "name": "memora-knowledge-base",
   "version": "2.1.0",
   "description": "Interactive knowledge graph visualization for Memora personal knowledge base with force-directed layout, zoom/pan interactions, and Obsidian-style design",
   "main": "static/script.js",

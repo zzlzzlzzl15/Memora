@@ -758,15 +758,13 @@ class KnowledgeGraphService:
             return {"entity_count": 0, "relation_count": 0, "document_count": 0}
 
         try:
-            # 【关键】在查询前先确保与 MySQL 的一致性
-            orphan_count = self._ensure_consistency_with_mysql(user_id)
-            if orphan_count > 0:
-                logger.info(f"已清理 {orphan_count} 个孤儿节点，继续查询统计数据")
-
             with self._driver.session(database=settings.neo4j_database) as session:
+                # user_id 在 Neo4j 中存储为字符串，直接使用
+                neo4j_user_id = str(user_id)
+                
                 entity_result = session.run(
                     "MATCH (e:Entity {user_id: $user_id}) RETURN count(e) AS count",
-                    user_id=user_id,
+                    user_id=neo4j_user_id,
                 )
                 entity_count = entity_result.single()["count"]
 
@@ -775,7 +773,7 @@ class KnowledgeGraphService:
                     MATCH (e1:Entity {user_id: $user_id})-[r:RELATED_TO]->(e2:Entity)
                     RETURN count(r) AS count
                     """,
-                    user_id=user_id,
+                    user_id=neo4j_user_id,
                 )
                 relation_count = rel_result.single()["count"]
 
@@ -814,16 +812,14 @@ class KnowledgeGraphService:
             return {"nodes": [], "edges": [], "document_count": 0, "total_nodes": 0, "total_edges": 0}
 
         try:
-            # 【关键】在查询前先确保与 MySQL 的一致性
-            orphan_count = self._ensure_consistency_with_mysql(user_id)
-            if orphan_count > 0:
-                logger.info(f"已清理 {orphan_count} 个孤儿节点，继续查询完整图谱")
-
             with self._driver.session(database=settings.neo4j_database) as session:
+                # user_id 在 Neo4j 中存储为字符串，直接使用
+                neo4j_user_id = str(user_id)
+                
                 # 获取文档数量
                 doc_result = session.run(
                     "MATCH (d:Document {user_id: $user_id}) RETURN count(d) AS count",
-                    user_id=user_id,
+                    user_id=neo4j_user_id,
                 )
                 document_count = doc_result.single()["count"]
                 
@@ -831,11 +827,11 @@ class KnowledgeGraphService:
                 entities_query = """
                 MATCH (e:Entity {user_id: $user_id})
                 WITH e ORDER BY e.created_at DESC LIMIT $limit
-                RETURN e.id AS id, labels(e)[0] AS label, e.type AS type, 
-                       e.name AS name, e.description AS description,
+                RETURN coalesce(e.entity_id, e.entity_name) AS id, labels(e)[0] AS label, e.entity_type AS type, 
+                       e.entity_name AS name, e.description AS description,
                        e.created_at AS created_at
                 """
-                entity_result = session.run(entities_query, user_id=user_id, limit=limit)
+                entity_result = session.run(entities_query, user_id=neo4j_user_id, limit=limit)
                 
                 nodes = []
                 entity_ids = set()
@@ -852,13 +848,13 @@ class KnowledgeGraphService:
                 # 获取这些实体之间的关系
                 relations_query = """
                 MATCH (e1:Entity {user_id: $user_id})-[r:RELATED_TO]->(e2:Entity {user_id: $user_id})
-                WHERE e1.id IN $entity_ids AND e2.id IN $entity_ids
-                RETURN e1.id AS source, e2.id AS target, r.type AS type,
+                WHERE e1.entity_id IN $entity_ids AND e2.entity_id IN $entity_ids
+                RETURN e1.entity_id AS source, e2.entity_id AS target, r.relation_type AS type,
                        r.weight AS weight, r.created_at AS created_at
                 """
                 relation_result = session.run(
                     relations_query, 
-                    user_id=user_id, 
+                    user_id=neo4j_user_id, 
                     entity_ids=list(entity_ids)
                 )
                 
@@ -883,84 +879,6 @@ class KnowledgeGraphService:
             logger.error(f"获取图谱数据失败: {e}")
             return {"nodes": [], "edges": [], "document_count": 0, "total_nodes": 0, "total_edges": 0, "error": str(e)}
     
-    def _ensure_consistency_with_mysql(self, user_id: str) -> int:
-        """
-        确保 Neo4j 与 MySQL 的一致性（轻量级检查）
-        
-        在每次查询图谱数据前调用，自动清理孤儿节点。
-        相比 sync_with_mysql()，这个方法只删除孤儿文档，不返回详细统计。
-        
-        Returns:
-            清理的孤儿文档数量
-        """
-        if not self.available:
-            return 0
-        
-        try:
-            # 1. 从 MySQL 获取权威文档列表
-            from app.core.sql import get_db
-            from app.models.db_models import DocumentORM
-            
-            db = next(get_db())
-            mysql_doc_ids = set(
-                doc.doc_id for doc in db.query(DocumentORM.doc_id).filter(
-                    DocumentORM.user_id == user_id,
-                    DocumentORM.is_deleted == False
-                ).all()
-            )
-            db.close()
-            
-            # 2. 找出并删除 Neo4j 中的孤儿文档
-            with self._driver.session(database=settings.neo4j_database) as session:
-                # 先获取 Neo4j 中所有文档 ID
-                neo4j_docs_result = session.run(
-                    "MATCH (d:Document {user_id: $user_id}) RETURN d.doc_id AS doc_id",
-                    user_id=user_id,
-                )
-                neo4j_doc_ids = {record["doc_id"] for record in neo4j_docs_result}
-                
-                orphan_doc_ids = neo4j_doc_ids - mysql_doc_ids
-                
-                if orphan_doc_ids:
-                    logger.warning(f"发现 {len(orphan_doc_ids)} 个孤儿文档节点，正在清理...")
-                    
-                    # 批量删除孤儿文档及其关系
-                    result = session.run(
-                        """
-                        MATCH (d:Document {user_id: $user_id})
-                        WHERE d.doc_id IN $orphan_ids
-                        DETACH DELETE d
-                        RETURN count(d) AS deleted_count
-                        """,
-                        user_id=user_id,
-                        orphan_ids=list(orphan_doc_ids),
-                    )
-                    deleted_docs = result.single()["deleted_count"]
-                    logger.info(f"已清理 {deleted_docs} 个孤儿文档节点")
-                    
-                    # 同时清理孤立实体
-                    orphan_entities_result = session.run(
-                        """
-                        MATCH (e:Entity {user_id: $user_id})
-                        WHERE NOT (e)-[:APPEARS_IN]->(:Document)
-                        WITH e LIMIT 5000
-                        DETACH DELETE e
-                        RETURN count(e) AS deleted_count
-                        """,
-                        user_id=user_id,
-                    )
-                    deleted_entities = orphan_entities_result.single()["deleted_count"]
-                    if deleted_entities > 0:
-                        logger.info(f"已清理 {deleted_entities} 个孤立实体节点")
-                    
-                    return deleted_docs
-                else:
-                    return 0
-                
-        except Exception as e:
-            logger.error(f"一致性检查失败（不影响主流程）: {e}")
-            return 0
-
     def get_document_graph(self, user_id: str, limit: int = 100) -> Dict[str, Any]:
         """获取文档图谱(文档节点和文档间关系)
         
@@ -980,12 +898,10 @@ class KnowledgeGraphService:
             return {"nodes": [], "edges": [], "total_nodes": 0, "total_edges": 0}
 
         try:
-            # 【关键】在查询前先确保与 MySQL 的一致性
-            orphan_count = self._ensure_consistency_with_mysql(user_id)
-            if orphan_count > 0:
-                logger.info(f"已清理 {orphan_count} 个孤儿节点，继续查询图谱数据")
-
             with self._driver.session(database=settings.neo4j_database) as session:
+                # user_id 在 Neo4j 中存储为字符串，直接使用
+                neo4j_user_id = str(user_id)
+                
                 # 获取所有文档节点
                 docs_query = """
                 MATCH (d:Document {user_id: $user_id})
@@ -993,7 +909,7 @@ class KnowledgeGraphService:
                 RETURN d.doc_id AS id, d.title AS label, 'Document' AS type,
                        d.created_at AS created_at
                 """
-                doc_result = session.run(docs_query, user_id=user_id, limit=limit)
+                doc_result = session.run(docs_query, user_id=neo4j_user_id, limit=limit)
                 
                 nodes = []
                 doc_ids = set()
@@ -1033,7 +949,7 @@ class KnowledgeGraphService:
                 """
                 relation_result = session.run(
                     relations_query, 
-                    user_id=user_id, 
+                    user_id=neo4j_user_id, 
                     doc_ids=list(doc_ids)
                 )
                 
@@ -1080,20 +996,18 @@ class KnowledgeGraphService:
             return {"nodes": [], "edges": [], "total_nodes": 0, "total_edges": 0}
 
         try:
-            # 【关键】在查询前先确保与 MySQL 的一致性
-            orphan_count = self._ensure_consistency_with_mysql(user_id)
-            if orphan_count > 0:
-                logger.info(f"已清理 {orphan_count} 个孤儿节点，继续查询图谱数据")
-
             with self._driver.session(database=settings.neo4j_database) as session:
+                # user_id 在 Neo4j 中存储为字符串，直接使用
+                neo4j_user_id = str(user_id)
+                
                 # 获取所有实体节点
                 entities_query = """
                 MATCH (e:Entity {user_id: $user_id})
                 WITH e ORDER BY e.created_at DESC LIMIT $limit
-                RETURN e.entity_id AS id, e.entity_name AS label, e.entity_type AS type,
+                RETURN coalesce(e.entity_id, e.entity_name) AS id, e.entity_name AS label, e.entity_type AS type,
                        e.description AS description, e.created_at AS created_at
                 """
-                entity_result = session.run(entities_query, user_id=user_id, limit=limit)
+                entity_result = session.run(entities_query, user_id=neo4j_user_id, limit=limit)
                 
                 nodes = []
                 entity_ids = set()
@@ -1126,14 +1040,18 @@ class KnowledgeGraphService:
                 
                 # 获取实体之间的关系
                 relations_query = """
-                MATCH (e1:Entity {user_id: $user_id})-[r:RELATED_TO]->(e2:Entity {user_id: $user_id})
-                WHERE e1.entity_id IN $entity_ids AND e2.entity_id IN $entity_ids
-                RETURN e1.entity_id AS source, e2.entity_id AS target, r.type AS type,
+                MATCH (e1:Entity {user_id: $user_id})-[r]->(e2:Entity {user_id: $user_id})
+                WHERE coalesce(e1.entity_id, e1.entity_name) IN $entity_ids 
+                  AND coalesce(e2.entity_id, e2.entity_name) IN $entity_ids
+                  AND e1 <> e2
+                RETURN coalesce(e1.entity_id, e1.entity_name) AS source, 
+                       coalesce(e2.entity_id, e2.entity_name) AS target, 
+                       coalesce(r.relation_type, type(r)) AS type,
                        r.weight AS weight, r.created_at AS created_at
                 """
                 relation_result = session.run(
                     relations_query, 
-                    user_id=user_id, 
+                    user_id=neo4j_user_id, 
                     entity_ids=list(entity_ids)
                 )
                 

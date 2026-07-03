@@ -161,7 +161,7 @@ class EntityExtractor:
     async def extract_from_chunks(
         self,
         chunks: List[Dict[str, Any]],
-        max_chunks: int = 10,
+        max_chunks: int = None,
     ) -> ExtractionResult:
         """
         从多个文档块中提取实体和关系 (并发优化版)
@@ -169,11 +169,11 @@ class EntityExtractor:
         参照 RAG-Anything processor.py _batch_extract_entities_lightrag_style:
         - 使用 Semaphore 控制并发数,避免 API 限速
         - 使用 asyncio.gather 并发处理多个块
-        - 限制提取的块数以控制 LLM 调用成本
+        - 处理所有传入的chunk，确保完整知识图谱覆盖
 
         Args:
             chunks: 文档块列表，每个块包含 content 字段
-            max_chunks: 最多处理的块数
+            max_chunks: 最多处理的块数（默认 None 表示处理全部）
 
         Returns:
             合并后的 ExtractionResult
@@ -182,8 +182,9 @@ class EntityExtractor:
             logger.debug("LLM API 不可用，跳过实体提取")
             return ExtractionResult()
 
-        # 限制最多处理 10 个块 (控制成本)
-        limited_chunks = chunks[:max_chunks]
+        # 处理所有chunk（除非显式指定 max_chunks）
+        limited_chunks = chunks[:max_chunks] if max_chunks is not None else chunks
+        logger.info(f"实体提取: 处理 {len(limited_chunks)}/{len(chunks)} 个chunk")
         
         # 获取并发控制参数
         max_parallel = getattr(settings, "kg_entity_max_parallel", 3)

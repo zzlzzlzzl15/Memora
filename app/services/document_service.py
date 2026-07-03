@@ -1000,16 +1000,16 @@ class DocumentService:
             {"content": c.content, "chunk_id": c.chunk_id}
             for c in chunks
             if getattr(c, 'content_type', 'text') == 'text' and c.content
-        ][:10]
+        ]
         
         if not chunk_data:
             logger.warning("没有有效的chunk数据,跳过实体提取")
             return
         
-        # 并发实体提取 (已在 entity_extractor 内部实现 Semaphore)
-        logger.info("调用extractor.extract_from_chunks...")
+        # 并发实体提取（处理所有chunk，不再限制数量）
+        logger.info(f"调用extractor.extract_from_chunks... 共 {len(chunk_data)} 个chunk")
         extraction_result = await extractor.extract_from_chunks(
-            chunk_data, max_chunks=10
+            chunk_data, max_chunks=len(chunk_data)
         )
         logger.info(f"提取结果: entities={len(extraction_result.entities)}, relations={len(extraction_result.relations)}")
         
@@ -1325,6 +1325,14 @@ class DocumentService:
         try:
             # 移除向量数据（若不存在则忽略）
             await self.vector_store.delete_document_vectors(document_id, user_id)
+            # 移除知识图谱数据（Document节点 + 孤立Entity节点）
+            if settings.neo4j_enabled:
+                try:
+                    from app.services.knowledge_graph import get_knowledge_graph_service
+                    kg_service = get_knowledge_graph_service()
+                    kg_service.delete_document_graph(document_id, user_id)
+                except Exception as kg_err:
+                    logger.warning(f"删除知识图谱数据失败（不影响主流程）: {kg_err}")
             # 标记软删除，同时清空 vector_id 字段
             deleted_at = datetime.utcnow().isoformat()
             updated = self.store.update_document(document_id, {
@@ -1402,6 +1410,14 @@ class DocumentService:
         try:
             # 双保险：再次尝试删除向量
             await self.vector_store.delete_document_vectors(document_id, user_id)
+            # 双保险：再次尝试删除知识图谱数据
+            if settings.neo4j_enabled:
+                try:
+                    from app.services.knowledge_graph import get_knowledge_graph_service
+                    kg_service = get_knowledge_graph_service()
+                    kg_service.delete_document_graph(document_id, user_id)
+                except Exception as kg_err:
+                    logger.warning(f"删除知识图谱数据失败（不影响主流程）: {kg_err}")
             # 删除文件
             if document.file_path:
                 await self.processor.delete_file(document.file_path)

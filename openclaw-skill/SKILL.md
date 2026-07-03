@@ -1,5 +1,5 @@
 ---
-name: memora-knowledge-graph
+name: memora
 description: >
   Memora — Personal AI Knowledge Base with interactive knowledge graph visualization.
   A self-hosted system for managing, retrieving, and querying your personal knowledge assets
@@ -10,7 +10,7 @@ description: >
   have AI-powered conversations about their knowledge, visualize document/entity relationships,
   or integrate knowledge management into their OpenClaw workflow.
 metadata:
-  version: 2.0.7
+  version: 2.1.0
   author: zzlzzlzzl15
   license: MIT
   openclaw:
@@ -108,7 +108,7 @@ metadata:
 ### Installation via clawhub
 
 ```bash
-openclaw skills install memora-knowledge-graph@2.0.4
+openclaw skills install @zzlzzlzzl15/memora
 ```
 
 ### Manual Installation

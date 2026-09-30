@@ -372,8 +372,8 @@ class QueryModeRouter:
         
         for entity_name in entities:
             try:
-                # 1. 匹配实体节点
-                matched_entities = self.kg_service.search_entities(entity_name, limit=5)
+                # 1. 匹配实体节点（search_entities 必须传 user_id，否则 TypeError 被静默吞掉）
+                matched_entities = self.kg_service.search_entities(entity_name, user_id, limit=5)
                 
                 for entity in matched_entities:
                     result.entities.append({

@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Query
-from fastapi.responses import StreamingResponse, FileResponse
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Query, BackgroundTasks
+from fastapi.responses import StreamingResponse, FileResponse, JSONResponse
 from typing import List, Optional
 import json
 import os
 from pathlib import Path
-from uuid import UUID
+from uuid import UUID, uuid4
 from io import BytesIO
 from loguru import logger
 
@@ -683,13 +683,29 @@ async def get_document_status(
             detail=f"获取文档状态失败: {str(e)}"
         )
 
-@router.post("/{document_id:uuid}/reprocess", response_model=Document, summary="重新处理文档")
+async def _reprocess_worker(document_service, doc, task_id: str, req_logger):
+    """后台执行 reprocess，捕获异常并落库状态，避免未处理异常。"""
+    try:
+        req_logger.info(f"Documents.reprocess.worker: start task_id='{task_id}' doc='{doc.document_id}'")
+        await document_service._process_document_vectors(doc)
+        req_logger.info(f"Documents.reprocess.worker: done task_id='{task_id}'")
+    except Exception as e:
+        req_logger.exception(
+            f"Documents.reprocess.worker: task_id='{task_id}' error {type(e).__name__}: {e}"
+        )
+
+@router.post("/{document_id:uuid}/reprocess", status_code=status.HTTP_202_ACCEPTED, summary="重新处理文档（异步）")
 async def reprocess_document(
     document_id: UUID,
+    background_tasks: BackgroundTasks,
     current_user: dict = Depends(get_current_active_user),
     req_logger = Depends(get_request_logger)
 ):
-    """重新处理文档（用于配置变更后重建索引或处理失败后重试）"""
+    """重新处理文档（异步任务）
+
+    立即返回 202 Accepted + task_id，实际处理在后台执行；
+    客户端通过 GET /documents/{id}/status 轮询进度，避免长连接阻塞与 ClientDisconnected 未处理异常。
+    """
     req_logger.info(f"Documents.reprocess: document_id='{document_id}' user_id='{current_user['user_id']}'")
     try:
         document_service = get_document_service()
@@ -716,7 +732,7 @@ async def reprocess_document(
             str(document_id), current_user["user_id"]
         )
 
-        # 重置状态并重新处理
+        # 重置状态（幂等保护：后续重复请求会因状态=PENDING/EMBEDDING 而被上方校验拦下）
         document_service.store.update_document(str(document_id), {
             "status": DocumentStatus.PENDING,
             "progress": 0,
@@ -724,17 +740,28 @@ async def reprocess_document(
             "vector_id": None,
         })
         updated_doc = document_service.store.get_document(str(document_id))
-        if updated_doc:
-            document_service._persist_metadata(updated_doc)
-            document_service._sync_to_database(updated_doc)
-            await document_service._process_document_vectors(updated_doc)
+        if not updated_doc:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="重新处理失败：无法读取文档"
+            )
+        document_service._persist_metadata(updated_doc)
+        document_service._sync_to_database(updated_doc)
 
-        refreshed = document_service.store.get_document(str(document_id))
-        if refreshed:
-            return document_service._convert_to_document(refreshed)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="重新处理失败"
+        # 后台异步执行，立即返回 202
+        task_id = str(uuid4())
+        background_tasks.add_task(_reprocess_worker, document_service, updated_doc, task_id, req_logger)
+
+        pending = DocumentStatus.PENDING
+        pending_val = pending.value if hasattr(pending, "value") else str(pending)
+        return JSONResponse(
+            status_code=status.HTTP_202_ACCEPTED,
+            content={
+                "document_id": str(document_id),
+                "task_id": task_id,
+                "status": pending_val,
+                "detail": "重新处理已在后台启动，请轮询 /documents/{id}/status 获取进度",
+            },
         )
     except HTTPException:
         raise

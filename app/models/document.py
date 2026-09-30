@@ -91,7 +91,7 @@ class SearchQuery(BaseModel):
     """搜索查询模型"""
     query: str = Field(..., min_length=1, max_length=40000, description="搜索查询（支持知识整理模式的长文本）")
     limit: int = Field(settings.qdrant_default_limit, ge=1, le=100, description="返回结果数量")
-    score_threshold: float = Field(0.7, ge=0.0, le=1.0, description="相似度阈值")
+    score_threshold: float = Field(settings.qdrant_dense_default_threshold, ge=0.0, le=1.0, description="密集相似度阈值（稀疏通道独立使用 sparse 阈值，不继承此值）")
     user_id: Optional[str] = Field(None, description="用户ID过滤")
     tags: Optional[List[str]] = Field(None, description="标签过滤")
     query_mode: Optional[str] = Field(None, description="查询模式: vector/local/global/hybrid/mix")

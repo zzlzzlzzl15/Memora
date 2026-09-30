@@ -958,6 +958,43 @@ class DocumentService:
         )
         return all_chunks
 
+    def _group_chunks_for_extraction(self, chunks: list, target_chars: int = 2500) -> list:
+        """将文本块按章节边界合并为较大的抽取单元，大幅减少 LLM 调用次数。
+
+        策略（P1-2）：
+        - 优先在 section 变化处断开，避免跨章节混抽；
+        - 单个单元内容不超 target_chars（extract 内部按 3000 截断）；
+        - 超大 chunk 单独成单元。
+
+        Returns:
+            [{"content": 合并文本, "chunk_id": 首块 id}, ...]
+        """
+        text_chunks = [
+            c for c in chunks
+            if getattr(c, 'content_type', 'text') == 'text' and c.content
+        ]
+        groups = []
+        cur_texts = []
+        cur_len = 0
+        cur_section = None
+        cur_first_id = None
+        for c in text_chunks:
+            section = getattr(c, 'section_title', None) or getattr(c, 'section_path', None)
+            clen = len(c.content)
+            # 需要断开：章节变化 或 合并后超长
+            if cur_texts and (section != cur_section or cur_len + clen > target_chars):
+                groups.append({"content": "\n".join(cur_texts), "chunk_id": cur_first_id})
+                cur_texts = []
+                cur_len = 0
+            if not cur_texts:
+                cur_section = section
+                cur_first_id = getattr(c, 'chunk_id', None)
+            cur_texts.append(c.content)
+            cur_len += clen
+        if cur_texts:
+            groups.append({"content": "\n".join(cur_texts), "chunk_id": cur_first_id})
+        return groups
+
     async def _build_knowledge_graph(self, document: DocumentInDB, chunks: list):
         """
         从文档块中提取实体和关系，写入 Neo4j 知识图谱 (并发优化版)
@@ -981,33 +1018,25 @@ class DocumentService:
             user_id=document.user_id,
         )
         
-        # 准备块数据 (仅文本类型,限制最多10块控制成本)
+        # 准备块数据 (仅文本类型；按章节合并为抽取单元以控制 LLM 调用次数)
         extractor = get_entity_extractor()
         if not extractor.available:
             logger.info("实体提取器不可用,跳过知识图谱构建")
             return
         
         logger.info(f"开始实体提取: {len(chunks)} chunks, 提取器可用={extractor.available}")
-        
-        chunk_data = [
-            {"content": c.content[:100] + "..." if len(c.content) > 100 else c.content, "chunk_id": c.chunk_id}
-            for c in chunks[:3]  # 只打印前3个chunk的内容预览
-            if getattr(c, 'content_type', 'text') == 'text' and c.content
-        ]
-        logger.info(f"Chunk数据预览: {chunk_data}")
-        
-        chunk_data = [
-            {"content": c.content, "chunk_id": c.chunk_id}
-            for c in chunks
-            if getattr(c, 'content_type', 'text') == 'text' and c.content
-        ]
-        
+
+        # 按章节合并为较大的抽取单元（51 chunks → 通常 5~8 个单元），大幅减少 LLM 调用
+        chunk_data = self._group_chunks_for_extraction(chunks)
+
         if not chunk_data:
             logger.warning("没有有效的chunk数据,跳过实体提取")
             return
-        
-        # 并发实体提取（处理所有chunk，不再限制数量）
-        logger.info(f"调用extractor.extract_from_chunks... 共 {len(chunk_data)} 个chunk")
+
+        # 并发实体提取（处理所有抽取单元）
+        logger.info(
+            f"调用extractor.extract_from_chunks... {len(chunks)} chunks 合并为 {len(chunk_data)} 个抽取单元"
+        )
         extraction_result = await extractor.extract_from_chunks(
             chunk_data, max_chunks=len(chunk_data)
         )
@@ -1020,7 +1049,9 @@ class DocumentService:
                     "name": e.name,
                     "type": e.entity_type,
                     "description": e.description,
-                    "source_chunk_id": None  # 当前 Entity 模型中没有此字段
+                    # P2-8: 传递 chunk 溯源，让 APPEARS_IN 携带 chunk 级关联
+                    "source_chunk_id": getattr(e, "source_chunk_id", None),
+                    "source_snippet": getattr(e, "source_snippet", ""),
                 }
                 for e in extraction_result.entities
             ],

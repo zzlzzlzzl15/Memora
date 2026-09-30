@@ -17,6 +17,9 @@ ENV/
 .env
 .env.local
 .env.*.local
+# Production secrets — never commit (real API keys / DB passwords)
+.env.production
+.env.prod
 
 # IDE
 .vscode/

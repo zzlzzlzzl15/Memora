@@ -879,6 +879,17 @@ class KnowledgeGraphService:
             logger.error(f"获取图谱数据失败: {e}")
             return {"nodes": [], "edges": [], "document_count": 0, "total_nodes": 0, "total_edges": 0, "error": str(e)}
     
+    @staticmethod
+    def _serialize_value(val):
+        """将 Neo4j 值转为 JSON 可序列化格式"""
+        if val is None:
+            return None
+        if hasattr(val, 'isoformat'):
+            return val.isoformat()
+        if hasattr(val, 'to_native'):
+            return val.to_native()
+        return str(val) if not isinstance(val, (str, int, float, bool)) else val
+
     def get_document_graph(self, user_id: str, limit: int = 100) -> Dict[str, Any]:
         """获取文档图谱(文档节点和文档间关系)
         
@@ -899,53 +910,50 @@ class KnowledgeGraphService:
 
         try:
             with self._driver.session(database=settings.neo4j_database) as session:
-                # user_id 在 Neo4j 中存储为字符串，直接使用
                 neo4j_user_id = str(user_id)
                 
-                # 获取所有文档节点
+                # 获取所有文档节点 — 使用 properties() 避免属性名不匹配
                 docs_query = """
                 MATCH (d:Document {user_id: $user_id})
-                WITH d ORDER BY d.created_at DESC LIMIT $limit
-                RETURN d.doc_id AS id, d.title AS label, 'Document' AS type,
-                       d.created_at AS created_at
+                WITH d, properties(d) AS props ORDER BY d.created_at DESC LIMIT $limit
+                RETURN props, toString(id(d)) AS internal_id
                 """
                 doc_result = session.run(docs_query, user_id=neo4j_user_id, limit=limit)
                 
                 nodes = []
                 doc_ids = set()
                 for record in doc_result:
-                    # 处理可能的None值
-                    doc_id = record.get("id")
+                    props = record["props"]
+                    # 回退获取 doc_id: doc_id > document_id > neo4j internal id
+                    doc_id = props.get("doc_id") or props.get("document_id") or record.get("internal_id")
                     if not doc_id:
-                        logger.warning(f"跳过没有id的文档记录: {record}")
+                        logger.warning(f"跳过没有id的文档记录: {props}")
                         continue
                     
                     node = {
-                        "id": doc_id,
-                        "label": record.get("label") or f"文档{doc_id[:8]}",
+                        "id": str(doc_id),
+                        "label": props.get("title") or f"文档{str(doc_id)[:8]}",
                         "type": "Document",
-                        "created_at": record.get("created_at")
+                        "created_at": self._serialize_value(props.get("created_at"))
                     }
                     nodes.append(node)
-                    doc_ids.add(doc_id)
+                    doc_ids.add(str(doc_id))
                 
                 logger.info(f"找到 {len(nodes)} 个文档节点, IDs: {list(doc_ids)[:5]}...")
                 
-                # 如果没有文档，直接返回
                 if not doc_ids:
-                    return {
-                        "nodes": [],
-                        "edges": [],
-                        "total_nodes": 0,
-                        "total_edges": 0
-                    }
+                    return {"nodes": [], "edges": [], "total_nodes": 0, "total_edges": 0}
                 
                 # 获取文档之间的关系(通过共享实体)
                 relations_query = """
                 MATCH (d1:Document {user_id: $user_id})-[:APPEARS_IN]-(e:Entity)-[:APPEARS_IN]-(d2:Document {user_id: $user_id})
-                WHERE d1.doc_id IN $doc_ids AND d2.doc_id IN $doc_ids AND d1.doc_id < d2.doc_id
+                WHERE (coalesce(d1.doc_id, d1.document_id) IN $doc_ids) 
+                  AND (coalesce(d2.doc_id, d2.document_id) IN $doc_ids) 
+                  AND coalesce(d1.doc_id, d1.document_id) < coalesce(d2.doc_id, d2.document_id)
                 WITH d1, d2, count(e) AS weight
-                RETURN d1.doc_id AS source, d2.doc_id AS target, 'SHARED_ENTITY' AS type, weight
+                RETURN coalesce(d1.doc_id, d1.document_id) AS source, 
+                       coalesce(d2.doc_id, d2.document_id) AS target, 
+                       'SHARED_ENTITY' AS type, weight
                 """
                 relation_result = session.run(
                     relations_query, 
@@ -956,8 +964,8 @@ class KnowledgeGraphService:
                 edges = []
                 for record in relation_result:
                     edge = {
-                        "source": record.get("source"),
-                        "target": record.get("target"),
+                        "source": str(record.get("source", "")),
+                        "target": str(record.get("target", "")),
                         "type": record.get("type", "SHARED_ENTITY"),
                         "weight": record.get("weight", 1.0)
                     }
@@ -997,57 +1005,50 @@ class KnowledgeGraphService:
 
         try:
             with self._driver.session(database=settings.neo4j_database) as session:
-                # user_id 在 Neo4j 中存储为字符串，直接使用
                 neo4j_user_id = str(user_id)
                 
-                # 获取所有实体节点
+                # 获取所有实体节点 — 使用 properties() 避免属性名不匹配
                 entities_query = """
                 MATCH (e:Entity {user_id: $user_id})
-                WITH e ORDER BY e.created_at DESC LIMIT $limit
-                RETURN coalesce(e.entity_id, e.entity_name) AS id, e.entity_name AS label, e.entity_type AS type,
-                       e.description AS description, e.created_at AS created_at
+                WITH e, properties(e) AS props ORDER BY e.created_at DESC LIMIT $limit
+                RETURN props, toString(id(e)) AS internal_id
                 """
                 entity_result = session.run(entities_query, user_id=neo4j_user_id, limit=limit)
                 
                 nodes = []
                 entity_ids = set()
                 for record in entity_result:
-                    # 处理可能的None值
-                    entity_id = record.get("id")
+                    props = record["props"]
+                    # 回退获取 entity_id: entity_id > entity_name > neo4j internal id
+                    entity_id = props.get("entity_id") or props.get("entity_name") or record.get("internal_id")
                     if not entity_id:
-                        logger.warning(f"跳过没有id的实体记录: {record}")
+                        logger.warning(f"跳过没有id的实体记录: {props}")
                         continue
                     
                     node = {
-                        "id": entity_id,
-                        "label": record.get("label") or f"实体{entity_id[:8]}",
-                        "type": record.get("type") or "Entity",
-                        "description": record.get("description", "")
+                        "id": str(entity_id),
+                        "label": props.get("entity_name") or f"实体{str(entity_id)[:8]}",
+                        "type": props.get("entity_type") or "Entity",
+                        "description": props.get("description") or ""
                     }
                     nodes.append(node)
-                    entity_ids.add(entity_id)
+                    entity_ids.add(str(entity_id))
                 
                 logger.info(f"找到 {len(nodes)} 个实体节点, IDs: {list(entity_ids)[:5]}...")
                 
-                # 如果没有实体，直接返回
                 if not entity_ids:
-                    return {
-                        "nodes": [],
-                        "edges": [],
-                        "total_nodes": 0,
-                        "total_edges": 0
-                    }
+                    return {"nodes": [], "edges": [], "total_nodes": 0, "total_edges": 0}
                 
                 # 获取实体之间的关系
                 relations_query = """
                 MATCH (e1:Entity {user_id: $user_id})-[r]->(e2:Entity {user_id: $user_id})
-                WHERE coalesce(e1.entity_id, e1.entity_name) IN $entity_ids 
-                  AND coalesce(e2.entity_id, e2.entity_name) IN $entity_ids
-                  AND e1 <> e2
+                WHERE e1 <> e2
+                  AND (coalesce(e1.entity_id, e1.entity_name) IN $entity_ids)
+                  AND (coalesce(e2.entity_id, e2.entity_name) IN $entity_ids)
                 RETURN coalesce(e1.entity_id, e1.entity_name) AS source, 
                        coalesce(e2.entity_id, e2.entity_name) AS target, 
                        coalesce(r.relation_type, type(r)) AS type,
-                       r.weight AS weight, r.created_at AS created_at
+                       coalesce(r.weight, 1.0) AS weight
                 """
                 relation_result = session.run(
                     relations_query, 
@@ -1058,8 +1059,8 @@ class KnowledgeGraphService:
                 edges = []
                 for record in relation_result:
                     edge = {
-                        "source": record.get("source"),
-                        "target": record.get("target"),
+                        "source": str(record.get("source", "")),
+                        "target": str(record.get("target", "")),
                         "type": record.get("type", "RELATED_TO"),
                         "weight": record.get("weight", 1.0)
                     }

@@ -136,7 +136,12 @@ app.add_middleware(
 # 定义根路由（必须在静态文件挂载之前）
 @app.get("/")
 async def root():
-    return FileResponse(os.path.join(STATIC_DIR, 'index.html'))
+    # v0.3.5: 加 no-cache 避免 index.html 缓存导致 script.js URL 更新后不生效
+    response = FileResponse(os.path.join(STATIC_DIR, 'index.html'))
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
 
 # 注册API路由
 app.include_router(auth_router, prefix="/api/v1")  # 已禁用的认证端点
@@ -150,7 +155,19 @@ app.include_router(sessions_router, prefix="/api/v1")
 app.include_router(system_router)  # system router already has /api/v1/system prefix
 
 # 挂载静态文件目录（必须在路由之后）
-app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+# v0.3.5: StaticFiles 加 no-cache 响应头，避免前端改完 JS 还要硬刷才能看到效果
+class NoCacheStaticFiles(StaticFiles):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def file_response(self, *args, **kwargs):
+        response = super().file_response(*args, **kwargs)
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
+
+app.mount("/static", NoCacheStaticFiles(directory=STATIC_DIR), name="static")
 
 
 @app.get("/health")

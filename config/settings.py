@@ -5,7 +5,7 @@ import os
 class Settings(BaseSettings):
     # 应用配置
     app_name: str = "Personal Knowledge Base"
-    app_version: str = "0.1.4"
+    app_version: str = "0.1.5"
     debug: bool = False
     log_level: str = "INFO"
     # 日志文件路径（使用绝对路径，基于项目根目录）

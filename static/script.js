@@ -1,6 +1,11 @@
 // 全局API基础URL
 const apiBaseUrl = window.location.origin;
 
+// 单用户模式：自动设置虚拟 token，确保前端功能正常使用（后端不验证 token 内容）
+if (!localStorage.getItem('token')) {
+    localStorage.setItem('token', 'single-user-mode');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     console.log('apiBaseUrl:', apiBaseUrl);
     // 优先尝试加载用户提供的自定义 logo
@@ -2000,9 +2005,19 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         const file = fileInput.files[0];
-        const title = documentTitle.value.trim();
-        if (!file || !title) {
-            alert('请选择文件并填写标题');
+        // v0.3.5 fix: 用户没填标题时不再 alert 拒绝，而是用文件名（去扩展名）作默认标题
+        //   完整文件名 = "MyNotes.md" → 默认标题 = "MyNotes"
+        //   用户填了标题则优先用用户填的（trim 后非空才算）
+        const userTitle = documentTitle.value.trim();
+        const fallbackTitle = file ? file.name.replace(/\.[^./\\]+$/, '') : '';
+        const title = userTitle || fallbackTitle;
+        if (!file) {
+            alert('请选择文件');
+            return;
+        }
+        if (!title) {
+            // 极端兜底：文件没有名字（不应该发生）
+            alert('无法确定文件标题，请填写或检查文件名');
             return;
         }
 
@@ -2151,8 +2166,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function submitFileSource() {
         const file = sourceFileInput?.files?.[0];
-        const title = (sourceFileTitle?.value || '').trim();
-        if (!file || !title) { alert('请选择文件并填写标题'); return; }
+        // v0.3.5 fix: 与主上传页一致 — title 为空时 fallback 到文件名（去扩展名）
+        const userTitle = (sourceFileTitle?.value || '').trim();
+        const fallbackTitle = file ? file.name.replace(/\.[^./\\]+$/, '') : '';
+        const title = userTitle || fallbackTitle;
+        if (!file) { alert('请选择文件'); return; }
+        if (!title) { alert('无法确定文件标题，请填写或检查文件名'); return; }
 
         const token = localStorage.getItem('token');
         if (!token) { alert('请先登录'); return; }
@@ -3654,7 +3673,7 @@ function initKnowledgeGraph() {
             
             const apiUrl = type === 'documents' 
                 ? `${apiBaseUrl}/api/v1/documents/knowledge-graph/documents?limit=50`
-                : `${apiBaseUrl}/api/v1/documents/knowledge-graph/entities?limit=80`;
+                : `${apiBaseUrl}/api/v1/documents/knowledge-graph/entities?limit=500`;
             
             const response = await fetch(apiUrl, {
                 headers: {
@@ -3726,7 +3745,7 @@ function initKnowledgeGraph() {
             try {
                 const apiUrl = type === 'documents' 
                     ? `${apiBaseUrl}/api/v1/documents/knowledge-graph/documents?limit=200`
-                    : `${apiBaseUrl}/api/v1/documents/knowledge-graph/entities?limit=300`;
+                    : `${apiBaseUrl}/api/v1/documents/knowledge-graph/entities?limit=500`;
                 
                 const response = await fetch(apiUrl, {
                     headers: {

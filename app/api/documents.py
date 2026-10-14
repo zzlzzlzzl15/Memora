@@ -99,13 +99,20 @@ async def batch_upload_documents(
 @router.post("/upload", response_model=Document, summary="上传文档")
 async def upload_document(
     file: UploadFile = File(...),
-    title: str = Form(...),
+    # v0.3.5 fix: title 变为可选项；未传或空串时 fallback 到文件名（去扩展名）
+    title: Optional[str] = Form(None),
     tags: Optional[str] = Form(None),
     metadata: Optional[str] = Form(None),
     current_user: dict = Depends(get_current_active_user),
     req_logger = Depends(get_request_logger)
 ):
     """上传文档文件"""
+    # v0.3.5: title fallback — 与前端逻辑保持一致
+    if not title or not title.strip():
+        title = Path(file.filename).stem if file.filename else "未命名文档"
+        req_logger.info(f"Documents.upload: title 未提供，fallback 到文件名='{title}'")
+    else:
+        title = title.strip()
     # 开始日志
     req_logger.info(f"Documents.upload: start title='{title}' filename='{file.filename}' user_id='{current_user['user_id']}'")
     try:

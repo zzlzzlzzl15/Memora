@@ -764,8 +764,9 @@ class DocumentService:
             # 新增：同步到数据库
             self._sync_to_database(created_document)
             
-            # 异步处理向量化（在后台进行）
-            await self._process_document_vectors(created_document)
+            # 后台异步处理向量化（不阻塞上传接口）
+            import asyncio
+            asyncio.create_task(self._process_document_vectors(created_document))
 
             # 新文档入库后清除用户查询缓存
             try:

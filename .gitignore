@@ -17,6 +17,15 @@ ENV/
 .env
 .env.local
 .env.*.local
+# v0.1.5 fix: 阻止含 API key / 密码的环境文件被误提交
+.env.production
+.env.production.bak.*
+.env.production.example
+# v0.1.5 fix: runtime 文件
+.memora.pid
+nohup.out
+# v0.1.5 fix: docker-compose 备份
+docker-compose.yml.bak.*
 
 # IDE
 .vscode/
@@ -56,10 +65,9 @@ pytest_cache/
 .coverage
 htmlcov/
 
-# Docker
-docker-compose*.yml
-Dockerfile
-.dockerignore
+# v0.1.5 fix: Dockerfile / docker-compose.yml 是核心部署文件，移到外面 commit
+# (v0.1.5 之前错误地把这两个也 ignore 了，导致部署文件从未进过 git)
+# 保留 .dockerignore 不追踪
 
 # Documentation (keep only README)
 docs/

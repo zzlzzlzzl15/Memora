@@ -13,6 +13,39 @@ from loguru import logger
 from config.settings import settings
 
 
+# ─── P2-9: 关系语义类型白名单（中文关系 → ASCII 关系类型）───
+# Neo4j 的关系类型必须是合法标识符，不能用参数占位，也不能裸插中文。
+# 因此用严格白名单把 LLM 输出的中文关系映射为固定的 ASCII 类型名，
+# 映射后的值只会是下方字典的 value（均为 [A-Z_]+），f-string 内插无注入风险；
+# 同时保留原始中文 relation_type 作为关系属性，兼容既有查询。
+_RELATION_TYPE_MAP = {
+    "包含": "CONTAINS", "组成": "COMPOSED_OF", "由": "COMPOSED_OF",
+    "依赖": "DEPENDS_ON", "属于": "BELONGS_TO", "实现": "IMPLEMENTS",
+    "影响": "AFFECTS", "相关": "RELATED_TO", "关联": "RELATED_TO",
+    "对比": "COMPARES", "前驱": "PRECEDES", "前提": "PRECEDES",
+    "使用": "USES", "创建": "CREATES", "生成": "CREATES", "产生": "CREATES",
+    "位于": "LOCATED_IN", "发生在": "LOCATED_IN", "导致": "CAUSES", "引起": "CAUSES",
+}
+
+
+def _map_relation_type(relation_type: str) -> str:
+    """将中文关系类型映射为白名单内的 ASCII 关系类型；未命中回退 RELATED_TO。"""
+    if not relation_type:
+        return "RELATED_TO"
+    key = relation_type.strip()
+    if key in _RELATION_TYPE_MAP:
+        return _RELATION_TYPE_MAP[key]
+    lower = key.lower()
+    for cn, en in _RELATION_TYPE_MAP.items():
+        if cn.lower() == lower:
+            return en
+    # 英文关系名直接命中白名单 value（如 DEPENDS_ON）
+    upper = key.upper().replace(" ", "_")
+    if upper in set(_RELATION_TYPE_MAP.values()):
+        return upper
+    return "RELATED_TO"
+
+
 class KnowledgeGraphService:
     """Neo4j 知识图谱服务"""
 
@@ -215,6 +248,7 @@ class KnowledgeGraphService:
                         doc_id=doc_id,
                         user_id=user_id,
                         source_chunk_id=entity.get("source_chunk_id"),
+                        source_snippet=entity.get("source_snippet", ""),
                     )
             logger.info(f"批量添加 {len(entities)} 个实体完成")
         except Exception as e:
@@ -229,8 +263,9 @@ class KnowledgeGraphService:
         doc_id: str,
         user_id: str,
         source_chunk_id: Optional[str] = None,
+        source_snippet: str = "",
     ):
-        """MERGE 实体节点,避免重复"""
+        """MERGE 实体节点,避免重复；APPEARS_IN 携带 chunk 级溯源（P2-8）"""
         tx.run(
             """
             MERGE (e:Entity {entity_name: $entity_name, user_id: $user_id})
@@ -246,7 +281,12 @@ class KnowledgeGraphService:
                 END,
                 e.updated_at = datetime()
             MERGE (d:Document {doc_id: $doc_id, user_id: $user_id})
-            MERGE (e)-[:APPEARS_IN]->(d)
+            MERGE (e)-[a:APPEARS_IN]->(d)
+            ON CREATE SET a.chunk_id = $chunk_id,
+                          a.chunk_snippet = $snippet,
+                          a.created_at = datetime()
+            ON MATCH SET  a.chunk_id = COALESCE(a.chunk_id, $chunk_id),
+                          a.chunk_snippet = COALESCE(a.chunk_snippet, $snippet)
             RETURN e
             """,
             entity_name=entity_name,
@@ -254,6 +294,8 @@ class KnowledgeGraphService:
             description=description,
             doc_id=doc_id,
             user_id=user_id,
+            chunk_id=source_chunk_id,
+            snippet=(source_snippet or "")[:500],
         )
 
     def add_relations_batch(
@@ -299,21 +341,22 @@ class KnowledgeGraphService:
         doc_id: str,
         user_id: str,
     ):
-        """MERGE 关系,自动创建端点实体"""
+        """MERGE 关系,自动创建端点实体；关系类型保留语义（P2-9）"""
+        rel_label = _map_relation_type(relation_type)
         tx.run(
-            """
-            MERGE (e1:Entity {entity_name: $source_name, user_id: $user_id})
+            f"""
+            MERGE (e1:Entity {{entity_name: $source_name, user_id: $user_id}})
             ON CREATE SET e1.entity_id = randomUUID(),
                           e1.entity_type = '未知',
                           e1.created_at = datetime()
-            MERGE (e2:Entity {entity_name: $target_name, user_id: $user_id})
+            MERGE (e2:Entity {{entity_name: $target_name, user_id: $user_id}})
             ON CREATE SET e2.entity_id = randomUUID(),
                           e2.entity_type = '未知',
                           e2.created_at = datetime()
-            MERGE (e1)-[r:RELATED_TO {
+            MERGE (e1)-[r:{rel_label} {{
                 relation_type: $relation_type,
                 source_doc_id: $doc_id
-            }]->(e2)
+            }}]->(e2)
             ON CREATE SET r.description = $description,
                           r.created_at = datetime()
             ON MATCH SET  r.updated_at = datetime()
@@ -359,20 +402,21 @@ class KnowledgeGraphService:
         tx, source_name, target_name, relation_type, description,
         doc_id, user_id, source_chunk_id,
     ):
+        rel_label = _map_relation_type(relation_type)
         tx.run(
-            """
-            MERGE (e1:Entity {entity_name: $source_name, user_id: $user_id})
+            f"""
+            MERGE (e1:Entity {{entity_name: $source_name, user_id: $user_id}})
             ON CREATE SET e1.entity_id = randomUUID(),
                           e1.entity_type = '未知',
                           e1.created_at = datetime()
-            MERGE (e2:Entity {entity_name: $target_name, user_id: $user_id})
+            MERGE (e2:Entity {{entity_name: $target_name, user_id: $user_id}})
             ON CREATE SET e2.entity_id = randomUUID(),
                           e2.entity_type = '未知',
                           e2.created_at = datetime()
-            MERGE (e1)-[r:RELATED_TO {
+            MERGE (e1)-[r:{rel_label} {{
                 relation_type: $relation_type,
                 source_doc_id: $doc_id
-            }]->(e2)
+            }}]->(e2)
             ON CREATE SET r.description = $description,
                           r.source_chunk_id = $chunk_id,
                           r.created_at = datetime()
@@ -420,6 +464,51 @@ class KnowledgeGraphService:
                 return [dict(record) for record in result]
         except Exception as e:
             logger.error(f"搜索实体失败: {e}")
+            return []
+
+    def get_entity_related_chunks(
+        self, entity_names: List[str], user_id: str, limit: int = 20
+    ) -> List[Dict[str, Any]]:
+        """获取实体关联的文档块（P2-8）
+
+        从 APPEARS_IN 关系上携带的 chunk_id / chunk_snippet 回源，
+        让 get_local_context 能真正填充 related_chunks。
+
+        Returns:
+            [{chunk_id, content, doc_id}, ...]
+        """
+        if not self.available or not entity_names:
+            return []
+
+        try:
+            with self._driver.session(database=settings.neo4j_database) as session:
+                result = session.run(
+                    """
+                    MATCH (e:Entity)-[a:APPEARS_IN]->(d:Document)
+                    WHERE e.entity_name IN $names AND e.user_id = $user_id
+                          AND a.chunk_id IS NOT NULL
+                    RETURN DISTINCT a.chunk_id AS chunk_id,
+                           a.chunk_snippet AS content,
+                           d.doc_id AS doc_id
+                    LIMIT $limit
+                    """,
+                    names=entity_names,
+                    user_id=user_id,
+                    limit=limit,
+                )
+                chunks = []
+                for record in result:
+                    content = record["content"] or ""
+                    if not content:
+                        continue
+                    chunks.append({
+                        "chunk_id": record["chunk_id"],
+                        "content": content,
+                        "doc_id": record["doc_id"],
+                    })
+                return chunks
+        except Exception as e:
+            logger.error(f"获取实体关联文档块失败: {e}")
             return []
 
     def get_entity_with_relations(
@@ -559,7 +648,9 @@ class KnowledgeGraphService:
                         "description": record.get("rel_description_text") or "",
                     })
 
-                return {"entities": entities, "relations": relations, "related_chunks": []}
+                # P2-8: 真正填充 related_chunks（从 APPEARS_IN 携带的 chunk 溯源回源）
+                related_chunks = self.get_entity_related_chunks(entity_names, user_id)
+                return {"entities": entities, "relations": relations, "related_chunks": related_chunks}
         except Exception as e:
             logger.error(f"获取局部上下文失败: {e}")
             return {"entities": [], "relations": [], "related_chunks": []}
@@ -583,7 +674,6 @@ class KnowledgeGraphService:
                     """
                     MATCH (e:Entity)-[r*1..3]-(related:Entity)
                     WHERE e.entity_name IN $names AND e.user_id = $user_id
-                    DISTINCT
                     RETURN DISTINCT e.entity_name AS source,
                            related.entity_name AS target,
                            related.entity_type AS target_type,

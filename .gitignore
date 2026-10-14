@@ -17,14 +17,15 @@ ENV/
 .env
 .env.local
 .env.*.local
-# v0.1.5 fix: 阻止含 API key / 密码的环境文件被误提交
+# v0.1.5 + v2.2.0 合并: 阻止含 API key / 密码的环境文件被误提交
 .env.production
+.env.prod
 .env.production.bak.*
 .env.production.example
-# v0.1.5 fix: runtime 文件
+# v0.1.5: runtime 文件
 .memora.pid
 nohup.out
-# v0.1.5 fix: docker-compose 备份
+# v0.1.5: docker-compose 备份
 docker-compose.yml.bak.*
 
 # IDE

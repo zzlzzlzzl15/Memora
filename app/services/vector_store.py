@@ -1,4 +1,6 @@
 import uuid
+import asyncio
+import functools
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 from pathlib import Path
@@ -189,6 +191,139 @@ class VectorStoreService:
             logger.error(f"添加文档块到向量数据库失败: {e}")
             raise e
     
+    def _search_sparse_sync(self, se, search_filter, limit, threshold):
+        """同步稀疏检索（在线程池中调用）。未配置/失败时返回 []，不影响密集通道。"""
+        if se is None:
+            return []
+        try:
+            return self.client.search(
+                collection_name=self.collection_name,
+                query_vector=NamedSparseVector(
+                    name=settings.sparse_vector_name,
+                    vector=SparseVector(indices=se["indices"], values=se["values"])
+                ),
+                query_filter=search_filter,
+                limit=limit,
+                score_threshold=threshold,
+                with_payload=True
+            ) or []
+        except UnexpectedResponse as ue:
+            logger.warning(f"稀疏检索不可用（集合未配置稀疏向量？），跳过稀疏通道: {ue}")
+            return []
+        except Exception as e:
+            logger.warning(f"稀疏检索失败，跳过稀疏通道: {e}")
+            return []
+
+    def _search_dense_sync(self, dense_embedding, search_filter, limit, threshold):
+        """同步密集检索（在线程池中调用）。命名向量缺失时回退默认向量。"""
+        try:
+            return self.client.search(
+                collection_name=self.collection_name,
+                query_vector=NamedVector(name="text-dense", vector=dense_embedding),
+                query_filter=search_filter,
+                limit=limit,
+                score_threshold=threshold,
+                with_payload=True
+            ) or []
+        except UnexpectedResponse as ue:
+            msg = str(ue)
+            if ("Vector params for text-dense are not specified in config" in msg
+                    or ("Not existing vector name error" in msg and "text-dense" in msg)):
+                logger.warning("集合未配置 'text-dense'，密集检索回退为默认向量")
+                return self.client.search(
+                    collection_name=self.collection_name,
+                    query_vector=dense_embedding,
+                    query_filter=search_filter,
+                    limit=limit,
+                    score_threshold=threshold,
+                    with_payload=True
+                ) or []
+            raise
+
+    @staticmethod
+    def _rrf_fuse(dense_points, sparse_points, k: int = 60):
+        """Reciprocal Rank Fusion：按两路排名融合，返回 [(point, rrf_score)] 降序。
+
+        同一点保留密集通道的 ScoredPoint（带余弦原始分）用于展示与阈值判断；
+        仅出现在稀疏通道的点则保留稀疏 point。
+        """
+        scores: Dict[Any, float] = {}
+        point_map: Dict[Any, Any] = {}
+        # 先密集（优先保留带余弦分的 point）
+        for rank, p in enumerate(dense_points):
+            scores[p.id] = scores.get(p.id, 0.0) + 1.0 / (k + rank + 1)
+            point_map.setdefault(p.id, p)
+        # 后稀疏
+        for rank, p in enumerate(sparse_points):
+            scores[p.id] = scores.get(p.id, 0.0) + 1.0 / (k + rank + 1)
+            point_map.setdefault(p.id, p)
+        ordered = sorted(scores.items(), key=lambda kv: kv[1], reverse=True)
+        return [(point_map[pid], s) for pid, s in ordered]
+
+    def _point_to_search_result(self, scored_point) -> SearchResult:
+        """将 Qdrant ScoredPoint 转为 SearchResult（含多模态媒体信息）。"""
+        payload = scored_point.payload
+        content_type = payload.get("content_type", "text") or "text"
+        media = None
+        if content_type != "text":
+            image_path = payload.get("image_path")
+            captions = payload.get("captions", [])
+            media = {}
+            if image_path:
+                parts = Path(image_path).parts
+                try:
+                    uploads_idx = parts.index("uploads")
+                    if len(parts) > uploads_idx + 2:
+                        uid = parts[uploads_idx + 1]
+                        fname = parts[-1]
+                        media["url"] = f"/api/v1/images/{uid}/{fname}"
+                        media["thumbnail_url"] = f"/api/v1/images/{uid}/{fname}?size=thumbnail"
+                except (ValueError, IndexError):
+                    pass
+            if captions:
+                media["captions"] = captions
+            if content_type == "table":
+                media["content_format"] = "markdown"
+            elif content_type == "equation":
+                media["content_format"] = "latex"
+            elif content_type == "image":
+                ext = Path(image_path).suffix.lstrip('.') if image_path else 'jpg'
+                media["content_format"] = ext
+
+        return SearchResult(
+            document_id=payload["document_id"],
+            title=payload.get("title", f"文档块 {payload['chunk_index']}"),
+            content=payload["content"],
+            score=scored_point.score,
+            content_type=content_type,
+            section_path=payload.get("section_path"),
+            section_title=payload.get("section_title"),
+            page_number=payload.get("page_number"),
+            context_before=payload.get("context_before"),
+            context_after=payload.get("context_after"),
+            image_url=media.get("url") if media else None,
+            thumbnail_url=media.get("thumbnail_url") if media else None,
+            image_path=payload.get("image_path") if content_type == "image" else None,
+            media=media,
+            metadata=payload.get("metadata", {}),
+            created_at=datetime.fromisoformat(payload["created_at"])
+        )
+
+    def _rerank_sync(self, query: str, results: List[SearchResult]) -> List[SearchResult]:
+        """同步 rerank（在线程池中调用），返回重排后的结果列表。"""
+        documents = [r.content for r in results]
+        reranked_indices = self.rerank_service.rerank(
+            query=query,
+            documents=documents,
+            top_k=min(settings.rerank_top_n, len(results))
+        )
+        reranked_results = []
+        for idx, rerank_score in reranked_indices:
+            result = results[idx]
+            result.score = rerank_score
+            reranked_results.append(result)
+        return reranked_results
+
     async def search_similar_documents(
         self,
         query: str,
@@ -197,190 +332,83 @@ class VectorStoreService:
         score_threshold: Optional[float] = None,
         tags: Optional[List[str]] = None,
     ) -> List[SearchResult]:
-        """搜索相似文档"""
+        """搜索相似文档（稀疏 + 密集双通道并行检索 → RRF 融合 → 可选 rerank）。
+
+        修复要点：
+        - 稀疏通道使用独立阈值 qdrant_sparse_default_threshold，不再继承 score_threshold（原缺陷：0.7 将稀疏打空）
+        - 两通道始终并行执行并 RRF 融合，取消原 `if not search_result` 短路（原缺陷：稀疏非空时密集彻底死掉）
+        - 同步 Qdrant / rerank 调用包裹进线程池，不再阻塞事件循环
+        - rerank 保护：密集 top1 >= rerank_skip_threshold 时跳过 rerank
+        """
         try:
-            # 如果启用rerank，则初始检索返回更多候选结果（默认20个）
+            loop = asyncio.get_event_loop()
+            # 启用 rerank 时初始检索更多候选
             retrieval_limit = settings.retrieval_top_k if self.rerank_service else limit
-            
-            # 尝试对查询文本进行稀疏向量化（BM42）；不可用或失败则后续走密集搜索
+
+            # 构建过滤条件
+            search_filter = None
+            if user_id:
+                search_filter = Filter(
+                    must=[FieldCondition(key="user_id", match=MatchValue(value=user_id))]
+                )
+
+            # 稀疏查询编码（不可用/失败则仅走密集）
             se = None
             if getattr(self.embedding_service, "sparse_enabled", False):
                 try:
                     se = await self.embedding_service.encode_sparse_text(query)
                 except Exception as e:
-                    logger.warning(f"稀疏嵌入生成失败，降级为密集向量搜索: {e}")
-            
-            # 构建过滤条件
-            search_filter = None
-            if user_id:
-                search_filter = Filter(
-                    must=[
-                        FieldCondition(
-                            key="user_id",
-                            match=MatchValue(value=user_id)
-                        )
-                    ]
-                )
-            
-            # 执行向量搜索：若存在稀疏向量则优先稀疏，否则直接走密集
-            if se is not None:
-                effective_threshold = score_threshold if score_threshold is not None else settings.qdrant_sparse_default_threshold
-                try:
-                    search_result = self.client.search(
-                        collection_name=self.collection_name,
-                        query_vector=NamedSparseVector(
-                            name=settings.sparse_vector_name,
-                            vector=SparseVector(indices=se["indices"], values=se["values"]) 
-                        ),
-                        query_filter=search_filter,
-                        limit=retrieval_limit,
-                        score_threshold=effective_threshold,
-                        with_payload=True
-                    )
-                    # 稀疏检索可能对中文短查询召回较弱，如结果为空则回退密集检索
-                    if not search_result:
-                        dense_embedding = await self.embedding_service.encode_text(query)
-                        dense_threshold = score_threshold if score_threshold is not None else settings.qdrant_dense_default_threshold
-                        search_result = self.client.search(
-                            collection_name=self.collection_name,
-                            query_vector=NamedVector(name="text-dense", vector=dense_embedding),
-                            query_filter=search_filter,
-                            limit=retrieval_limit,
-                            score_threshold=dense_threshold,
-                            with_payload=True
-                        )
-                except UnexpectedResponse as ue:
-                    msg = str(ue)
-                    # 当集合未配置稀疏向量时，Qdrant返回400；此处降级为密集搜索
-                    if (
-                        "Vector params for" in msg and "not specified in config" in msg
-                    ) or ("Not existing vector name error" in msg):
-                        logger.warning(f"稀疏搜索不可用({msg})，降级为密集向量搜索")
-                        dense_embedding = await self.embedding_service.encode_text(query)
-                        effective_threshold = score_threshold if score_threshold is not None else settings.qdrant_dense_default_threshold
-                        search_result = self.client.search(
-                            collection_name=self.collection_name,
-                            query_vector=NamedVector(name="text-dense", vector=dense_embedding),
-                            query_filter=search_filter,
-                            limit=retrieval_limit,
-                            score_threshold=effective_threshold,
-                            with_payload=True
-                        )
-                    else:
-                        raise
-            else:
-                # 稀疏不可用或编码失败，直接使用密集搜索
-                dense_embedding = await self.embedding_service.encode_text(query)
-                effective_threshold = score_threshold if score_threshold is not None else settings.qdrant_dense_default_threshold
-                try:
-                    search_result = self.client.search(
-                        collection_name=self.collection_name,
-                        query_vector=NamedVector(name="text-dense", vector=dense_embedding),
-                        query_filter=search_filter,
-                        limit=retrieval_limit,
-                        score_threshold=effective_threshold,
-                        with_payload=True
-                    )
-                except UnexpectedResponse as ue:
-                    msg = str(ue)
-                    if "Vector params for text-dense are not specified in config" in msg:
-                        logger.warning("集合未配置 'text-dense'，密集搜索回退为默认向量")
-                        search_result = self.client.search(
-                            collection_name=self.collection_name,
-                            query_vector=dense_embedding,  # 默认向量搜索（未命名）
-                            query_filter=search_filter,
-                            limit=retrieval_limit,
-                            score_threshold=effective_threshold,
-                            with_payload=True
-                        )
-                    else:
-                        raise
-            
-            # 转换搜索结果
-            results = []
-            for scored_point in search_result:
-                payload = scored_point.payload
+                    logger.warning(f"稀疏嵌入生成失败，仅用密集通道: {e}")
 
-                # 构建多模态媒体信息
-                content_type = payload.get("content_type", "text") or "text"
-                media = None
-                if content_type != "text":
-                    image_path = payload.get("image_path")
-                    captions = payload.get("captions", [])
-                    media = {}
-                    if image_path:
-                        # 将绝对路径转为 API URL
-                        parts = Path(image_path).parts
-                        # 查找 uploads 之后的 user_id 和文件名
-                        try:
-                            uploads_idx = parts.index("uploads")
-                            if len(parts) > uploads_idx + 2:
-                                uid = parts[uploads_idx + 1]
-                                fname = parts[-1]
-                                media["url"] = f"/api/v1/images/{uid}/{fname}"
-                                media["thumbnail_url"] = f"/api/v1/images/{uid}/{fname}?size=thumbnail"
-                        except (ValueError, IndexError):
-                            pass
-                    if captions:
-                        media["captions"] = captions
-                    # 内容格式
-                    if content_type == "table":
-                        media["content_format"] = "markdown"
-                    elif content_type == "equation":
-                        media["content_format"] = "latex"
-                    elif content_type == "image":
-                        ext = Path(image_path).suffix.lstrip('.') if image_path else 'jpg'
-                        media["content_format"] = ext
+            # 密集查询编码
+            dense_embedding = await self.embedding_service.encode_text(query)
 
-                result = SearchResult(
-                    document_id=payload["document_id"],
-                    title=payload.get("title", f"文档块 {payload['chunk_index']}"),
-                    content=payload["content"],
-                    score=scored_point.score,
-                    content_type=content_type,
-                    section_path=payload.get("section_path"),
-                    section_title=payload.get("section_title"),
-                    page_number=payload.get("page_number"),
-                    context_before=payload.get("context_before"),
-                    context_after=payload.get("context_after"),
-                    image_url=media.get("url") if media else None,
-                    thumbnail_url=media.get("thumbnail_url") if media else None,
-                    image_path=payload.get("image_path") if content_type == "image" else None,
-                    media=media,
-                    metadata=payload.get("metadata", {}),
-                    created_at=datetime.fromisoformat(payload["created_at"])
-                )
-                results.append(result)
-            
-            logger.info(f"搜索查询 '{query}' 返回 {len(results)} 个初始结果")
-            
-            # 如果启用rerank，则对结果进行重排序
+            # 阈值：稀疏独立阈值（不继承 score_threshold），密集用 score_threshold 或默认
+            sparse_threshold = settings.qdrant_sparse_default_threshold
+            dense_threshold = score_threshold if score_threshold is not None else settings.qdrant_dense_default_threshold
+
+            # 两路并行检索（同步客户端包裹进线程池，避免阻塞事件循环）
+            sparse_task = loop.run_in_executor(
+                None,
+                functools.partial(self._search_sparse_sync, se, search_filter, retrieval_limit, sparse_threshold)
+            )
+            dense_task = loop.run_in_executor(
+                None,
+                functools.partial(self._search_dense_sync, dense_embedding, search_filter, retrieval_limit, dense_threshold)
+            )
+            sparse_points, dense_points = await asyncio.gather(sparse_task, dense_task)
+            sparse_points = sparse_points or []
+            dense_points = dense_points or []
+
+            # RRF 融合
+            fused = self._rrf_fuse(dense_points, sparse_points, k=settings.hybrid_rrf_k)
+            logger.info(
+                f"混合检索 '{query}': 稀疏 {len(sparse_points)} 条 + 密集 {len(dense_points)} 条 "
+                f"→ RRF 融合 {len(fused)} 条"
+            )
+
+            # 密集 top1 分数（用于 rerank 保护判断）
+            dense_top1 = dense_points[0].score if dense_points else 0.0
+
+            # 转换（保持 RRF 顺序）
+            results = [self._point_to_search_result(point) for point, _ in fused]
+
+            # rerank（带保护 + 线程池）
             if self.rerank_service and results:
-                logger.info(f"启用Rerank，候选数: {len(results)}, 目标返回Top {settings.rerank_top_n}")
-                
-                # 提取文档内容用于rerank
-                documents = [r.content for r in results]
-                
-                # 执行rerank
-                reranked_indices = self.rerank_service.rerank(
-                    query=query,
-                    documents=documents,
-                    top_k=min(settings.rerank_top_n, len(results))
+                if dense_top1 >= settings.rerank_skip_threshold:
+                    logger.info(
+                        f"密集 top1={dense_top1:.3f} >= {settings.rerank_skip_threshold}，跳过 rerank（保护精确匹配）"
+                    )
+                    return results[:limit]
+                logger.info(f"启用 Rerank，候选数: {len(results)}, 目标返回 Top {settings.rerank_top_n}")
+                reranked_results = await loop.run_in_executor(
+                    None, functools.partial(self._rerank_sync, query, results)
                 )
-                
-                # 根据rerank结果重新排序
-                reranked_results = []
-                for idx, rerank_score in reranked_indices:
-                    result = results[idx]
-                    # 更新score为rerank分数
-                    result.score = rerank_score
-                    reranked_results.append(result)
-                
-                logger.info(f"Rerank完成，返回 {len(reranked_results)} 个结果")
+                logger.info(f"Rerank 完成，返回 {len(reranked_results)} 个结果")
                 return reranked_results
-            
-            return results
-            
+
+            return results[:limit]
+
         except Exception as e:
             logger.error(f"搜索相似文档失败: {e}")
             raise e

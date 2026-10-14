@@ -43,8 +43,15 @@ class Settings(BaseSettings):
     sparse_vector_name: str = os.getenv("SPARSE_VECTOR_NAME") or "bm42"
 
     # 默认搜索分数阈值（密集/稀疏），可通过环境变量覆盖
-    qdrant_dense_default_threshold: float = float(os.getenv("QDRANT_DENSE_DEFAULT_THRESHOLD") or 0.7)
+    # 密集阈值 0.7 过高（正确答案大量落在 0.5~0.7），会导致零命中，默认下调为 0.3
+    qdrant_dense_default_threshold: float = float(os.getenv("QDRANT_DENSE_DEFAULT_THRESHOLD") or 0.3)
     qdrant_sparse_default_threshold: float = float(os.getenv("QDRANT_SPARSE_DEFAULT_THRESHOLD") or 0.0)
+
+    # 混合检索 RRF 融合常数（Reciprocal Rank Fusion，k 越大越弱化头部排名差异）
+    hybrid_rrf_k: int = int(os.getenv("HYBRID_RRF_K") or 60)
+
+    # Rerank 保护：当密集通道 top1 分数 >= 该阈值时跳过 rerank，避免精确匹配被跨章节泛化压低
+    rerank_skip_threshold: float = float(os.getenv("RERANK_SKIP_THRESHOLD") or 0.75)
     
     # Rerank配置（使用通义千问在线API）
     use_rerank: bool = os.getenv("USE_RERANK", "true").lower() == "true"
@@ -146,8 +153,13 @@ class Settings(BaseSettings):
     # 多模态并发处理配置（参照 RAG-Anything _process_multimodal_content_batch_type_aware）
     # multimodal_max_parallel: 同时调用 VLM/LLM 的最大并发数（避免 API 限速）
     multimodal_max_parallel: int = int(os.getenv("MULTIMODAL_MAX_PARALLEL") or 2)
-    # kg_entity_max_parallel: 知识图谱实体提取的最大并发 chunk 数
-    kg_entity_max_parallel: int = int(os.getenv("KG_ENTITY_MAX_PARALLEL") or 3)
+    # kg_entity_max_parallel: 知识图谱实体提取的最大并发 chunk 数（服务端实测无限流，可提高并发）
+    kg_entity_max_parallel: int = int(os.getenv("KG_ENTITY_MAX_PARALLEL") or 8)
+
+    # 实体提取 LLM 输出上限（max_tokens=2000 对 500 字符 chunk 偏紧，截断会触发 JSON 解析失败）
+    llm_extraction_max_tokens: int = int(os.getenv("LLM_EXTRACTION_MAX_TOKENS") or 3000)
+    # 实体提取结果按 content-hash 缓存（reprocess 命中缓存可跳过 LLM 重跑）
+    entity_extraction_cache_enabled: bool = os.getenv("ENTITY_EXTRACTION_CACHE_ENABLED", "true").lower() == "true"
     
     # 分页配置
     default_page_size: int = 20
